@@ -22,7 +22,7 @@ are useful, but I don&amp;#8217;t use them for some&amp;nbsp;reasons.&lt;/p&gt;
 &lt;h2&gt;File and symbols&amp;nbsp;search&lt;/h2&gt;
 &lt;p&gt;&lt;a href="https://github.com/junegunn/fzf"&gt;&lt;span class="caps"&gt;FZF&lt;/span&gt;&lt;/a&gt; is powerful plug-in for fuzzy-search for both terminal and Vim.
 This plug-in supports both search for files with command &lt;code&gt;:Files&lt;/code&gt; and for symbols (tags) with command &lt;code&gt;:Tags&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;![alt&amp;nbsp;text][fzf-screenshot]&lt;/p&gt;
+&lt;p&gt;&lt;img alt="FZF" src="https://asp437.github.io/images/fzf-example.png"&gt;&lt;/p&gt;
 &lt;h2&gt;Go to&amp;nbsp;something&lt;/h2&gt;
 &lt;p&gt;&lt;a href="http://cscope.sourceforge.net/"&gt;CScope&lt;/a&gt; is tool which provides ability for &amp;#8220;Go to&amp;#8221;/search commands on symbols for C code.
 Your Vim should be compiled with &lt;code&gt;--enable-cscope&lt;/code&gt; flag to use this plug-in.
