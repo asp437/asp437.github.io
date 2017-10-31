@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Aleksandr Parfenov's Blog - Misc</title><link>https://asp437.github.io/</link><description></description><lastBuildDate>Sun, 22 Oct 2017 00:00:00 +0300</lastBuildDate><item><title>Vim configuration and plugins for C development</title><link>https://asp437.github.io/posts/vim-for-c.html</link><description>&lt;p&gt;&lt;strong&gt;!!!&lt;span class="caps"&gt;IMPORTANT&lt;/span&gt;!!!&lt;/strong&gt; this post is a draft for testing blog publication on GitHub&amp;nbsp;Pages.&lt;/p&gt;
+&lt;p&gt;Vim one of the most powerful and popular text editor for programing.
+One of the strongest side of Vim is wide collection of plug-ins for most of use cases.
+In this post I will tell about my configuration and set of plug-ins for C&amp;nbsp;development.&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aleksandr Parfenov</dc:creator><pubDate>Sun, 22 Oct 2017 00:00:00 +0300</pubDate><guid isPermaLink="false">tag:asp437.github.io,2017-10-22:/posts/vim-for-c.html</guid><category>Development Tools</category><category>Vim</category></item></channel></rss>
