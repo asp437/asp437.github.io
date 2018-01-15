@@ -8,12 +8,12 @@
 		<meta name="description" content="">
 		<meta name="author" content="Aleksandr Parfenov">
 
-		<link rel="stylesheet" href="../theme/css/foundation.css" />
-		<link rel="stylesheet" href="../theme/css/pygment/monokai.css" />
-		<link rel="stylesheet" href="../theme/css/custom.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/foundation.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/pygment/monokai.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/custom.css" />
 
 
-		<script src="../theme/js/modernizr.js"></script>
+		<script src="https://asp437.github.io/theme/js/modernizr.js"></script>
 
 		<!-- Feeds -->
 		<link href="https://asp437.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Aleksandr Parfenov's Blog Atom Feed" />
@@ -53,15 +53,14 @@
 				<!-- mobile side bar nav -->
 				<aside class="left-off-canvas-menu">
 					<ul class="off-canvas-list">
-						<li><a href="..">Home</a></li>
+						<li><a href="https://asp437.github.io">Home</a></li>
 						<li><label>Categories</label></li>
-							<li class="active"><a href="../category/misc.html">Misc</a></li>
+							<li ><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
 
 						<li><label>Links</label></li>
 							<li><a href="http://getpelican.com/">Pelican</a></li>
 							<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
 							<li><a href="http://postgrespro.com">Postgres Professional</a></li>
-							<li><a href="#">You can modify those links in your config file</a></li>
 
 
 
@@ -76,18 +75,18 @@
 				<nav class="top-bar hide-for-small-only" data-topbar>
 					<ul class="title-area">
 						<li class="name">
-							<h1><a href="../">Aleksandr Parfenov's Blog</a></h1>
+							<h1><a href="https://asp437.github.io/">Aleksandr Parfenov's Blog</a></h1>
 						</li>
 					</ul>
 
 					<section class="top-bar-section">
 						<ul class="left">
-								<li class="active"><a href="../category/misc.html">Misc</a></li>
+								<li ><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
 						</ul>
                         <ul class="right">                                                                                                                                           
                                                                                                           
 ····                                                                                                                                       
-                                     <li><a href="../pages/about.html">About</a></li>                                    
+                                     <li><a href="https://asp437.github.io/pages/about.html">About</a></li>                                    
                                                                                                                                           
                                                                                                                                              
                         </ul>  
@@ -99,59 +98,31 @@
 					<div class="row">
 						<!-- Main Content -->
 						<div class="medium-9 small-12 columns" role="content">
+							<div class="row">
+								<div class="small-12 columns">
+									<h2>Posts Tagged With 'ElasticSearch'</h2>
+								</div>
+							</div>
+
 <article>
-	<h2>Vim configuration and plugins for C&nbsp;development</h2>
-	<p><strong>!!!<span class="caps">IMPORTANT</span>!!!</strong> this post is a draft for testing blog publication on GitHub&nbsp;Pages.</p>
-<p>Vim one of the most powerful and popular text editor for programing.
-One of the strongest side of Vim is wide collection of plug-ins for most of use cases.
-In this post I will tell about my configuration and set of plug-ins for C&nbsp;development.</p>
+	<h3><a href="https://asp437.github.io/posts/pg-elastic-prototype.html">pg-elastic - Proxy to use PostgreSQL via ElasticSearch&nbsp;protocol</a></h3>
+	<h6>Written by <a href="https://asp437.github.io/author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a> on 15/01/2018. Tags: <a href="https://asp437.github.io/tag/postgresql.html">PostgreSQL</a>, <a href="https://asp437.github.io/tag/fts.html">FTS</a>, <a href="https://asp437.github.io/tag/elasticsearch.html">ElasticSearch</a>, </h6>
+	<p><strong>ElasticSearch</strong> is one of the most popular solutions for Full-Text Search.
+<strong>ElasticSearch</strong> is based on <em>Apache Lucene</em>, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use <span class="caps">REST</span> <span class="caps">API</span>.
+On the other hand, <strong>PostgreSQL</strong> also provides <span class="caps">FTS</span> features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+<strong>PostgreSQL</strong> via <strong>ElasticSearch</strong> protocol.
+The source code of the prototype is published on
+<a href="https://github.com/asp437/pg_elastic">GitHub project page</a>.</p>
 
-
-<h2>Requirements and&nbsp;expectations</h2>
-<p>There are few things that I expect from editor for fast and comfortable&nbsp;work:</p>
-<ul>
-<li>Fuzzy file&nbsp;search</li>
-<li>Search for symbols (functions, constants,&nbsp;etc.)</li>
-<li>Go to&nbsp;definition</li>
-<li>Auto-completion for structure&#8217;s fields (with type&nbsp;information)</li>
-</ul>
-<p>More complex helpers like debugger integration, function arguments tool-tip, refactoring, etc.
-are useful, but I don&#8217;t use them for some&nbsp;reasons.</p>
-<h2>File and symbols&nbsp;search</h2>
-<p><a href="https://github.com/junegunn/fzf"><span class="caps">FZF</span></a> is powerful plug-in for fuzzy-search for both terminal and Vim.
-This plug-in supports both search for files with command <code>:Files</code> and for symbols (tags) with command <code>:Tags</code>.</p>
-<p><img alt="FZF" src="../images/fzf-example.png"></p>
-<h2>Go to&nbsp;something</h2>
-<p><a href="http://cscope.sourceforge.net/">CScope</a> is tool which provides ability for &#8220;Go to&#8221;/search commands on symbols for C code.
-Your Vim should be compiled with <code>--enable-cscope</code> flag to use this plug-in.
-To use this plug-in with you code you should generate CScope tags for it using command-line utility.
-The plug-in supports following&nbsp;commands:</p>
-<ul>
-<li><code>:cs find s</code> search for all symbol&nbsp;references</li>
-<li><code>:cs find g</code> search for global definition of the&nbsp;symbol</li>
-<li><code>:cs find c</code> search for calls to the&nbsp;function</li>
-<li><code>:cs find t</code> search for&nbsp;text</li>
-<li><code>:cs find e</code> do an <code>egrep</code> search</li>
-<li><code>:cs find f</code> search for file&nbsp;name</li>
-<li><code>:cs find i</code> search for files which include target&nbsp;file</li>
-<li><code>:cs find d</code> search functions that called by target&nbsp;function</li>
-</ul>
-<p>For more comfortable use I you mappings similar to <a href="https://github.com/chazy/cscope_maps/">cscope_maps</a> for automatic use of name under&nbsp;cursor.</p>
-<h2>Auto-completion</h2>
-<p>I use <a href="">YouComleteMe</a> plug-in for auto-completion for variety of languages include C.
-The plug-in installation process is not easy since it requires manual compilation of server component.
-The plug-in has client-server architecture with server written in C++.
-Fortunately, compilation process is easy and can done in one command.
-The only problem I face were related to <code>clang</code> compiler (used as a back-end for C/C++), but the case
-is described in <span class="caps">FAQ</span> of the&nbsp;project.</p>
-<h2>Conclusion</h2>
-<p>Described settings and plugins are my personal choice and may be not optimal for you.
-If have any ideas how to improve C/C++ development environment in Vim, you&#8217;re welcome to comment your&nbsp;ideas.</p>
-	<hr/>
-	<h6>Written by <a href="../author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="../category/misc.html">Misc</a> on 22/10/2017. Tags: <a href="../tag/development-tools.html">Development Tools</a>, <a href="../tag/vim.html">Vim</a>, </h6>
+		<p class="continue"><a href="https://asp437.github.io/posts/pg-elastic-prototype.html">Continue reading &raquo;</a></p>
 </article>
+<hr />
 
-<hr/>
+
 						</div>
 						<!-- End Main Content -->
 						<!-- Sidebar -->
@@ -162,7 +133,6 @@ If have any ideas how to improve C/C++ development environment in Vim, you&#8217
 									<li><a href="http://getpelican.com/">Pelican</a></li>
 									<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
 									<li><a href="http://postgrespro.com">Postgres Professional</a></li>
-									<li><a href="#">You can modify those links in your config file</a></li>
 								</ul>
 							</div>
 
@@ -189,7 +159,7 @@ If have any ideas how to improve C/C++ development environment in Vim, you&#8217
 					<footer class="row">
 						<div class="medium-9 small-12">
 							<hr/>
-							<p class="text-center">© 2017 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
+							<p class="text-center">© 2018 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
 						</div>
 					</footer>
 					<!-- End Footer -->
@@ -198,8 +168,8 @@ If have any ideas how to improve C/C++ development environment in Vim, you&#8217
 			</div><!--off-canvas inner-->
 		</div><!--off-canvas wrap-->
 
-		<script src="../theme/js/jquery.js"></script>
-		<script src="../theme/js/foundation.min.js"></script>
+		<script src="https://asp437.github.io/theme/js/jquery.js"></script>
+		<script src="https://asp437.github.io/theme/js/foundation.min.js"></script>
 		<script>
 			$(document).foundation();
 		</script>

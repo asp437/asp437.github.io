@@ -1,51 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Aleksandr Parfenov's Blog</title><link href="https://asp437.github.io/" rel="alternate"></link><link href="https://asp437.github.io/feeds/all.atom.xml" rel="self"></link><id>https://asp437.github.io/</id><updated>2017-10-22T00:00:00+03:00</updated><entry><title>Vim configuration and plugins for C development</title><link href="https://asp437.github.io/posts/vim-for-c.html" rel="alternate"></link><published>2017-10-22T00:00:00+03:00</published><updated>2017-10-22T00:00:00+03:00</updated><author><name>Aleksandr Parfenov</name></author><id>tag:asp437.github.io,2017-10-22:/posts/vim-for-c.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;!!!&lt;span class="caps"&gt;IMPORTANT&lt;/span&gt;!!!&lt;/strong&gt; this post is a draft for testing blog publication on GitHub&amp;nbsp;Pages.&lt;/p&gt;
-&lt;p&gt;Vim one of the most powerful and popular text editor for programing.
-One of the strongest side of Vim is wide collection of plug-ins for most of use cases.
-In this post I will tell about my configuration and set of plug-ins for C&amp;nbsp;development.&lt;/p&gt;
-</summary><content type="html">&lt;p&gt;&lt;strong&gt;!!!&lt;span class="caps"&gt;IMPORTANT&lt;/span&gt;!!!&lt;/strong&gt; this post is a draft for testing blog publication on GitHub&amp;nbsp;Pages.&lt;/p&gt;
-&lt;p&gt;Vim one of the most powerful and popular text editor for programing.
-One of the strongest side of Vim is wide collection of plug-ins for most of use cases.
-In this post I will tell about my configuration and set of plug-ins for C&amp;nbsp;development.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Aleksandr Parfenov's Blog</title><link href="https://asp437.github.io/" rel="alternate"></link><link href="https://asp437.github.io/feeds/all.atom.xml" rel="self"></link><id>https://asp437.github.io/</id><updated>2018-01-15T00:00:00+03:00</updated><entry><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link href="https://asp437.github.io/posts/pg-elastic-prototype.html" rel="alternate"></link><published>2018-01-15T00:00:00+03:00</published><updated>2018-01-15T00:00:00+03:00</updated><author><name>Aleksandr Parfenov</name></author><id>tag:asp437.github.io,2018-01-15:/posts/pg-elastic-prototype.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+&lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt;.
+On the other hand, &lt;strong&gt;PostgreSQL&lt;/strong&gt; also provides &lt;span class="caps"&gt;FTS&lt;/span&gt; features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+&lt;strong&gt;PostgreSQL&lt;/strong&gt; via &lt;strong&gt;ElasticSearch&lt;/strong&gt; protocol.
+The source code of the prototype is published on
+&lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
+</summary><content type="html">&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+&lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt;.
+On the other hand, &lt;strong&gt;PostgreSQL&lt;/strong&gt; also provides &lt;span class="caps"&gt;FTS&lt;/span&gt; features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+&lt;strong&gt;PostgreSQL&lt;/strong&gt; via &lt;strong&gt;ElasticSearch&lt;/strong&gt; protocol.
+The source code of the prototype is published on
+&lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
 
 
-&lt;h2&gt;Requirements and&amp;nbsp;expectations&lt;/h2&gt;
-&lt;p&gt;There are few things that I expect from editor for fast and comfortable&amp;nbsp;work:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Fuzzy file&amp;nbsp;search&lt;/li&gt;
-&lt;li&gt;Search for symbols (functions, constants,&amp;nbsp;etc.)&lt;/li&gt;
-&lt;li&gt;Go to&amp;nbsp;definition&lt;/li&gt;
-&lt;li&gt;Auto-completion for structure&amp;#8217;s fields (with type&amp;nbsp;information)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;More complex helpers like debugger integration, function arguments tool-tip, refactoring, etc.
-are useful, but I don&amp;#8217;t use them for some&amp;nbsp;reasons.&lt;/p&gt;
-&lt;h2&gt;File and symbols&amp;nbsp;search&lt;/h2&gt;
-&lt;p&gt;&lt;a href="https://github.com/junegunn/fzf"&gt;&lt;span class="caps"&gt;FZF&lt;/span&gt;&lt;/a&gt; is powerful plug-in for fuzzy-search for both terminal and Vim.
-This plug-in supports both search for files with command &lt;code&gt;:Files&lt;/code&gt; and for symbols (tags) with command &lt;code&gt;:Tags&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="FZF" src="https://asp437.github.io/images/fzf-example.png"&gt;&lt;/p&gt;
-&lt;h2&gt;Go to&amp;nbsp;something&lt;/h2&gt;
-&lt;p&gt;&lt;a href="http://cscope.sourceforge.net/"&gt;CScope&lt;/a&gt; is tool which provides ability for &amp;#8220;Go to&amp;#8221;/search commands on symbols for C code.
-Your Vim should be compiled with &lt;code&gt;--enable-cscope&lt;/code&gt; flag to use this plug-in.
-To use this plug-in with you code you should generate CScope tags for it using command-line utility.
-The plug-in supports following&amp;nbsp;commands:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;:cs find s&lt;/code&gt; search for all symbol&amp;nbsp;references&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find g&lt;/code&gt; search for global definition of the&amp;nbsp;symbol&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find c&lt;/code&gt; search for calls to the&amp;nbsp;function&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find t&lt;/code&gt; search for&amp;nbsp;text&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find e&lt;/code&gt; do an &lt;code&gt;egrep&lt;/code&gt; search&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find f&lt;/code&gt; search for file&amp;nbsp;name&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find i&lt;/code&gt; search for files which include target&amp;nbsp;file&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;:cs find d&lt;/code&gt; search functions that called by target&amp;nbsp;function&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;For more comfortable use I you mappings similar to &lt;a href="https://github.com/chazy/cscope_maps/"&gt;cscope_maps&lt;/a&gt; for automatic use of name under&amp;nbsp;cursor.&lt;/p&gt;
-&lt;h2&gt;Auto-completion&lt;/h2&gt;
-&lt;p&gt;I use &lt;a href=""&gt;YouComleteMe&lt;/a&gt; plug-in for auto-completion for variety of languages include C.
-The plug-in installation process is not easy since it requires manual compilation of server component.
-The plug-in has client-server architecture with server written in C++.
-Fortunately, compilation process is easy and can done in one command.
-The only problem I face were related to &lt;code&gt;clang&lt;/code&gt; compiler (used as a back-end for C/C++), but the case
-is described in &lt;span class="caps"&gt;FAQ&lt;/span&gt; of the&amp;nbsp;project.&lt;/p&gt;
+&lt;h2&gt;Motivation&lt;/h2&gt;
+&lt;p&gt;There is a number of different reasons to use such a server.
+Let&amp;#8217;s look at some of&amp;nbsp;them.&lt;/p&gt;
+&lt;p&gt;One of the most simple reasons is an intention to use as less of applications
+as possible since each application in infrastructure requires an effort to configuration
+and maintenance. In that case, we can remove one complex component of the infrastructure
+and replace it with a simple one. Also, it removes the problem of synchronization of two
+separate data-store&amp;nbsp;components.&lt;/p&gt;
+&lt;p&gt;Another example is a migrating system to &lt;strong&gt;PostgreSQL&lt;/strong&gt; as main data storage.
+In that case, the pg-elastic can help to move from one platform to another faster,
+without rewriting the client application immediately. It is clear that this could
+better not to use as a permanent solution, but it can dramatically reduce the number
+of problems during&amp;nbsp;migration.&lt;/p&gt;
+&lt;p&gt;And the third reason is a performance boost in some special cases which can be used
+in your application. &lt;strong&gt;PostgreSQL&lt;/strong&gt; has few index types that are aimed to use in
+&lt;span class="caps"&gt;FTS&lt;/span&gt; problems and some of them optimised for a narrow range of operation to perform
+very&amp;nbsp;fast.&lt;/p&gt;
+&lt;h2&gt;Prototype&amp;nbsp;implementation&lt;/h2&gt;
+&lt;p&gt;The basic idea of the solution is to fully simulate &lt;strong&gt;ElasticSearch&lt;/strong&gt; &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt; and
+proxy all requests to PostgreSQL instance. The server is written in &lt;em&gt;Go&lt;/em&gt; in order
+to process requests asynchronously in an easy way and get some other useful tools
+as well as fast execution speed and easy to deploy an&amp;nbsp;application.&lt;/p&gt;
+&lt;p&gt;All documents and configurations stored in &lt;strong&gt;PostgreSQL&lt;/strong&gt; tables mainly in &lt;em&gt;&lt;span class="caps"&gt;JSONB&lt;/span&gt;&lt;/em&gt;
+format that allows storing non-structured data in &lt;strong&gt;PostgreSQL&lt;/strong&gt;. The workflow of
+the request processing is shown in the following&amp;nbsp;schema.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Request processing" src="/images/pg-elastic-request-processing.png"&gt;&lt;/p&gt;
+&lt;p&gt;The current version of the pg-elastic is just prototype which supports only a few
+basic types of request and developed as proof-of-the-concept.
+More information about supported &lt;span class="caps"&gt;API&lt;/span&gt; can be found on
+&lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;h3&gt;Installation&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;pg_elastic&lt;/code&gt; written in &lt;em&gt;Go&lt;/em&gt; programing language which is required to build the application.
+All dependencies could be automatically downloaded via &lt;code&gt;go get&lt;/code&gt; command.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;span class="caps"&gt;IMPORTANT&lt;/span&gt;!&lt;/em&gt;&lt;/strong&gt; &lt;code&gt;pg_elastic&lt;/code&gt; requires Go compiler version 1.9 or&amp;nbsp;above.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To download source code with all dependcies into &lt;code&gt;$GOPATH&lt;/code&gt; environment&amp;nbsp;use:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go get github.com/asp437/pg_elastic
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;To build the application and place executable file in current directory&amp;nbsp;use:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go build github.com/asp437/pg_elastic
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;To build and install the application int &lt;code&gt;$GOPATH/bin&lt;/code&gt; use:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go install github.com/asp437/pg_elastic
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;Built executable file could be found at &lt;code&gt;$GOPATH/bin/pg_elastic&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To run dev-version of application inside its directory&amp;nbsp;execute:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go run main.go
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h3&gt;Basic&amp;nbsp;actions&lt;/h3&gt;
+&lt;p&gt;The following example written in Python shows basic requests based on tests
+included with &lt;code&gt;pg_elastic&lt;/code&gt; and &lt;code&gt;elasticsearch_dsl&lt;/code&gt; library as easy to use &lt;strong&gt;ElasticSearch&lt;/strong&gt;&amp;nbsp;driver&lt;/p&gt;
+&lt;p&gt;First of all, we should create a document type to&amp;nbsp;store:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5
+6
+7
+8&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Tweet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DocType&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;message&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;analyzer&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;english&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Text&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;post_date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Date&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+    &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;twitter&amp;#39;&lt;/span&gt;
+        &lt;span class="n"&gt;doc_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;tweet&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;The next piece of code shows how to store&amp;nbsp;documnts:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;message&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;trying out Elasticsearch&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;kimchy&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;tweet&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Tweet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;meta&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;id&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt; &lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;post_date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="n"&gt;tweet&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;save&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;The following code searches over the collection of&amp;nbsp;documents:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt; 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Search&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;twitter&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; \
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;match&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;try&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;execute&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Search&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;twitter&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; \
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;match&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;trying&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;execute&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Search&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;twitter&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; \
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;match&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;elastic&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;execute&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h3&gt;Migration&lt;/h3&gt;
+&lt;p&gt;To migrate data from existing &lt;strong&gt;ElasticSearch&lt;/strong&gt; cluster into &lt;strong&gt;PostgreSQL&lt;/strong&gt;
+instance for further usage with &lt;code&gt;pg_elastic&lt;/code&gt; use migration tool which is
+available in the &lt;code&gt;pg_elastic_migrate&lt;/code&gt; subpackage. It is automatically
+downloaded together with &lt;code&gt;pg_elastic&lt;/code&gt; itself.&lt;/p&gt;
+&lt;p&gt;To build the application and place executable file in current directory&amp;nbsp;use:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go build github.com/asp437/pg_elastic/pg_elastic_migrate
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;To build and install it into &lt;code&gt;$GOPATH/bin&lt;/code&gt; use:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;go install github.com/asp437/pg_elastic/pg_elastic_migrate
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;To use the tool you should provide information about both &lt;strong&gt;ElasticSearch&lt;/strong&gt;
+source server and &lt;strong&gt;PostgreSQL&lt;/strong&gt; destanation instance. For example(all parameters are&amp;nbsp;optional):&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;pg_elastic_migrate -elasticsearch-host&lt;span class="o"&gt;=&lt;/span&gt;localhost:9200 -postgresql-host&lt;span class="o"&gt;=&lt;/span&gt;localhost:5432 -postgresql-user&lt;span class="o"&gt;=&lt;/span&gt;postgres -postgresql-password&lt;span class="o"&gt;=&lt;/span&gt;postgres -postgresql-database&lt;span class="o"&gt;=&lt;/span&gt;postgres
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;Built executable file could be found at &lt;code&gt;$GOPATH/bin/pg_elastic_migrate&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Use &lt;code&gt;-h&lt;/code&gt; flag to get more information about tool&amp;#8217;s&amp;nbsp;parameters.&lt;/p&gt;
 &lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;Described settings and plugins are my personal choice and may be not optimal for you.
-If have any ideas how to improve C/C++ development environment in Vim, you&amp;#8217;re welcome to comment your&amp;nbsp;ideas.&lt;/p&gt;</content><category term="Development Tools"></category><category term="Vim"></category></entry></feed>
+&lt;p&gt;The development of the prototype showed that it is a quite challenging task to
+fully simulate the behavior of &lt;strong&gt;ElasticSearch&lt;/strong&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt;. Nevertheless,
+it may worth in some cases, especially for systems with a &lt;strong&gt;PostgreSQL&lt;/strong&gt; as
+the main data storage and &lt;strong&gt;ElasticSearch&lt;/strong&gt; as an &lt;span class="caps"&gt;FTS&lt;/span&gt; engine due to removing of the
+synchronization&amp;nbsp;process.&lt;/p&gt;</content><category term="PostgreSQL"></category><category term="FTS"></category><category term="ElasticSearch"></category></entry></feed>

@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Aleksandr Parfenov's Blog - PostgreSQL</title><link>https://asp437.github.io/</link><description></description><lastBuildDate>Fri, 13 Oct 2017 00:00:00 +0300</lastBuildDate><item><title>PostgreSQL Flexible Full Text Search</title><link>https://asp437.github.io/posts/pgconfeu17-fts.html</link><description>&lt;p&gt;This post is textual appendix for &lt;a href="https://www.postgresql.eu/events/schedule/pgconfeu2017/session/1595-flexible-full-text-search/"&gt;PgConf.&lt;span class="caps"&gt;EU&lt;/span&gt; conference talk&lt;/a&gt;
-done by &lt;em&gt;Arthur Zakirov&lt;/em&gt; and me.
-This post contains some additional details about each component of &lt;strong&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/strong&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt;, example database with examples code snippets and dataset and scripts used in&amp;nbsp;benchmarks.&lt;/p&gt;
-</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aleksandr Parfenov</dc:creator><pubDate>Fri, 13 Oct 2017 00:00:00 +0300</pubDate><guid isPermaLink="false">tag:asp437.github.io,2017-10-13:/posts/pgconfeu17-fts.html</guid><category>PostgreSQL</category><category>FTS</category><category>Conferences</category></item></channel></rss>
+<rss version="2.0"><channel><title>Aleksandr Parfenov's Blog - PostgreSQL</title><link>https://asp437.github.io/</link><description></description><lastBuildDate>Mon, 15 Jan 2018 00:00:00 +0300</lastBuildDate><item><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link>https://asp437.github.io/posts/pg-elastic-prototype.html</link><description>&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+&lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt;.
+On the other hand, &lt;strong&gt;PostgreSQL&lt;/strong&gt; also provides &lt;span class="caps"&gt;FTS&lt;/span&gt; features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+&lt;strong&gt;PostgreSQL&lt;/strong&gt; via &lt;strong&gt;ElasticSearch&lt;/strong&gt; protocol.
+The source code of the prototype is published on
+&lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aleksandr Parfenov</dc:creator><pubDate>Mon, 15 Jan 2018 00:00:00 +0300</pubDate><guid isPermaLink="false">tag:asp437.github.io,2018-01-15:/posts/pg-elastic-prototype.html</guid><category>PostgreSQL</category><category>FTS</category><category>ElasticSearch</category></item></channel></rss>

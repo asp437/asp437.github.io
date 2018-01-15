@@ -8,12 +8,12 @@
 		<meta name="description" content="">
 		<meta name="author" content="Aleksandr Parfenov">
 
-		<link rel="stylesheet" href="./theme/css/foundation.css" />
-		<link rel="stylesheet" href="./theme/css/pygment/monokai.css" />
-		<link rel="stylesheet" href="./theme/css/custom.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/foundation.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/pygment/monokai.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/custom.css" />
 
 
-		<script src="./theme/js/modernizr.js"></script>
+		<script src="https://asp437.github.io/theme/js/modernizr.js"></script>
 
 		<!-- Feeds -->
 		<link href="https://asp437.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Aleksandr Parfenov's Blog Atom Feed" />
@@ -53,15 +53,14 @@
 				<!-- mobile side bar nav -->
 				<aside class="left-off-canvas-menu">
 					<ul class="off-canvas-list">
-						<li><a href=".">Home</a></li>
+						<li><a href="https://asp437.github.io">Home</a></li>
 						<li><label>Categories</label></li>
-							<li ><a href="./category/misc.html">Misc</a></li>
+							<li ><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
 
 						<li><label>Links</label></li>
 							<li><a href="http://getpelican.com/">Pelican</a></li>
 							<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
 							<li><a href="http://postgrespro.com">Postgres Professional</a></li>
-							<li><a href="#">You can modify those links in your config file</a></li>
 
 
 
@@ -76,18 +75,18 @@
 				<nav class="top-bar hide-for-small-only" data-topbar>
 					<ul class="title-area">
 						<li class="name">
-							<h1><a href="./">Aleksandr Parfenov's Blog</a></h1>
+							<h1><a href="https://asp437.github.io/">Aleksandr Parfenov's Blog</a></h1>
 						</li>
 					</ul>
 
 					<section class="top-bar-section">
 						<ul class="left">
-								<li ><a href="./category/misc.html">Misc</a></li>
+								<li ><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
 						</ul>
                         <ul class="right">                                                                                                                                           
                                                                                                           
 ····                                                                                                                                       
-                                     <li><a href="./pages/about.html">About</a></li>                                    
+                                     <li><a href="https://asp437.github.io/pages/about.html">About</a></li>                                    
                                                                                                                                           
                                                                                                                                              
                         </ul>  
@@ -101,14 +100,20 @@
 						<div class="medium-9 small-12 columns" role="content">
 
 <article>
-	<h3><a href="./posts/vim-for-c.html">Vim configuration and plugins for C&nbsp;development</a></h3>
-	<h6>Written by <a href="./author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="./category/misc.html">Misc</a> on 22/10/2017. Tags: <a href="./tag/development-tools.html">Development Tools</a>, <a href="./tag/vim.html">Vim</a>, </h6>
-	<p><strong>!!!<span class="caps">IMPORTANT</span>!!!</strong> this post is a draft for testing blog publication on GitHub&nbsp;Pages.</p>
-<p>Vim one of the most powerful and popular text editor for programing.
-One of the strongest side of Vim is wide collection of plug-ins for most of use cases.
-In this post I will tell about my configuration and set of plug-ins for C&nbsp;development.</p>
+	<h3><a href="https://asp437.github.io/posts/pg-elastic-prototype.html">pg-elastic - Proxy to use PostgreSQL via ElasticSearch&nbsp;protocol</a></h3>
+	<h6>Written by <a href="https://asp437.github.io/author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a> on 15/01/2018. Tags: <a href="https://asp437.github.io/tag/postgresql.html">PostgreSQL</a>, <a href="https://asp437.github.io/tag/fts.html">FTS</a>, <a href="https://asp437.github.io/tag/elasticsearch.html">ElasticSearch</a>, </h6>
+	<p><strong>ElasticSearch</strong> is one of the most popular solutions for Full-Text Search.
+<strong>ElasticSearch</strong> is based on <em>Apache Lucene</em>, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use <span class="caps">REST</span> <span class="caps">API</span>.
+On the other hand, <strong>PostgreSQL</strong> also provides <span class="caps">FTS</span> features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+<strong>PostgreSQL</strong> via <strong>ElasticSearch</strong> protocol.
+The source code of the prototype is published on
+<a href="https://github.com/asp437/pg_elastic">GitHub project page</a>.</p>
 
-		<p class="continue"><a href="./posts/vim-for-c.html">Continue reading &raquo;</a></p>
+		<p class="continue"><a href="https://asp437.github.io/posts/pg-elastic-prototype.html">Continue reading &raquo;</a></p>
 </article>
 <hr />
 
@@ -123,7 +128,6 @@ In this post I will tell about my configuration and set of plug-ins for C&nbsp;d
 									<li><a href="http://getpelican.com/">Pelican</a></li>
 									<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
 									<li><a href="http://postgrespro.com">Postgres Professional</a></li>
-									<li><a href="#">You can modify those links in your config file</a></li>
 								</ul>
 							</div>
 
@@ -150,7 +154,7 @@ In this post I will tell about my configuration and set of plug-ins for C&nbsp;d
 					<footer class="row">
 						<div class="medium-9 small-12">
 							<hr/>
-							<p class="text-center">© 2017 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
+							<p class="text-center">© 2018 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
 						</div>
 					</footer>
 					<!-- End Footer -->
@@ -159,8 +163,8 @@ In this post I will tell about my configuration and set of plug-ins for C&nbsp;d
 			</div><!--off-canvas inner-->
 		</div><!--off-canvas wrap-->
 
-		<script src="./theme/js/jquery.js"></script>
-		<script src="./theme/js/foundation.min.js"></script>
+		<script src="https://asp437.github.io/theme/js/jquery.js"></script>
+		<script src="https://asp437.github.io/theme/js/foundation.min.js"></script>
 		<script>
 			$(document).foundation();
 		</script>

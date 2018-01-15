@@ -1,0 +1,316 @@
+<!doctype html>
+<html class="no-js" lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>Aleksandr Parfenov's Blog</title>
+		<meta name="description" content="">
+		<meta name="author" content="Aleksandr Parfenov">
+
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/foundation.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/pygment/monokai.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/custom.css" />
+
+
+		<script src="https://asp437.github.io/theme/js/modernizr.js"></script>
+
+		<!-- Feeds -->
+		<link href="https://asp437.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Aleksandr Parfenov's Blog Atom Feed" />
+		<link href="https://asp437.github.io/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="Aleksandr Parfenov's Blog RSS Feed" />
+
+
+		<!-- mathjax config similar to math.stackexchange -->
+		<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({
+			jax: ["input/TeX", "output/HTML-CSS"],
+			tex2jax: {
+				inlineMath: [ ['$', '$'] ],
+				displayMath: [ ['$$', '$$']],
+				processEscapes: true,
+				skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+			},
+			messageStyle: "none",
+			"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+		});
+		</script>
+		<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+	</head>
+	<body>
+		<div class="off-canvas-wrap">
+			<div class="inner-wrap">
+				<!-- mobile top bar to activate nav -->
+				<nav class="tab-bar show-for-small">
+					<section class="left-small">
+						<a class="left-off-canvas-toggle menu-icon" ><span></span></a>
+					</section>
+
+					<section class="middle tab-bar-section">
+						<h1 class="title">Aleksandr&nbsp;Parfenov's&nbsp;Blog</h1>
+					</section>
+				</nav>
+
+				<!-- mobile side bar nav -->
+				<aside class="left-off-canvas-menu">
+					<ul class="off-canvas-list">
+						<li><a href="https://asp437.github.io">Home</a></li>
+						<li><label>Categories</label></li>
+							<li class="active"><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
+
+						<li><label>Links</label></li>
+							<li><a href="http://getpelican.com/">Pelican</a></li>
+							<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
+							<li><a href="http://postgrespro.com">Postgres Professional</a></li>
+
+
+
+						<li><label>Social</label></li>
+							<li><a href="http://www.facebook.com/asp437">Facebook</a></li>
+							<li><a href="https://github.com/asp437/">GitHub</a></li>
+							<li><a href="http://www.linkedin.com/in/asp437">LinkedIn</a></li>
+					</ul>	
+				</aside>
+
+				<!-- top bar nav -->
+				<nav class="top-bar hide-for-small-only" data-topbar>
+					<ul class="title-area">
+						<li class="name">
+							<h1><a href="https://asp437.github.io/">Aleksandr Parfenov's Blog</a></h1>
+						</li>
+					</ul>
+
+					<section class="top-bar-section">
+						<ul class="left">
+								<li class="active"><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
+						</ul>
+                        <ul class="right">                                                                                                                                           
+                                                                                                          
+····                                                                                                                                       
+                                     <li><a href="https://asp437.github.io/pages/about.html">About</a></li>                                    
+                                                                                                                                          
+                                                                                                                                             
+                        </ul>  
+					</section>
+				</nav>
+
+				<!-- Main Page Content and Sidebar -->
+				<section class="main-section">
+					<div class="row">
+						<!-- Main Content -->
+						<div class="medium-9 small-12 columns" role="content">
+<article>
+	<h2>pg-elastic - Proxy to use PostgreSQL via ElasticSearch&nbsp;protocol</h2>
+	<p><strong>ElasticSearch</strong> is one of the most popular solutions for Full-Text Search.
+<strong>ElasticSearch</strong> is based on <em>Apache Lucene</em>, powerful and flexible framework
+for text processing and provides additional components to it such as indices
+and easy-to-use <span class="caps">REST</span> <span class="caps">API</span>.
+On the other hand, <strong>PostgreSQL</strong> also provides <span class="caps">FTS</span> features and widely used to store
+huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use
+<strong>PostgreSQL</strong> via <strong>ElasticSearch</strong> protocol.
+The source code of the prototype is published on
+<a href="https://github.com/asp437/pg_elastic">GitHub project page</a>.</p>
+
+
+<h2>Motivation</h2>
+<p>There is a number of different reasons to use such a server.
+Let&#8217;s look at some of&nbsp;them.</p>
+<p>One of the most simple reasons is an intention to use as less of applications
+as possible since each application in infrastructure requires an effort to configuration
+and maintenance. In that case, we can remove one complex component of the infrastructure
+and replace it with a simple one. Also, it removes the problem of synchronization of two
+separate data-store&nbsp;components.</p>
+<p>Another example is a migrating system to <strong>PostgreSQL</strong> as main data storage.
+In that case, the pg-elastic can help to move from one platform to another faster,
+without rewriting the client application immediately. It is clear that this could
+better not to use as a permanent solution, but it can dramatically reduce the number
+of problems during&nbsp;migration.</p>
+<p>And the third reason is a performance boost in some special cases which can be used
+in your application. <strong>PostgreSQL</strong> has few index types that are aimed to use in
+<span class="caps">FTS</span> problems and some of them optimised for a narrow range of operation to perform
+very&nbsp;fast.</p>
+<h2>Prototype&nbsp;implementation</h2>
+<p>The basic idea of the solution is to fully simulate <strong>ElasticSearch</strong> <span class="caps">REST</span> <span class="caps">API</span> and
+proxy all requests to PostgreSQL instance. The server is written in <em>Go</em> in order
+to process requests asynchronously in an easy way and get some other useful tools
+as well as fast execution speed and easy to deploy an&nbsp;application.</p>
+<p>All documents and configurations stored in <strong>PostgreSQL</strong> tables mainly in <em><span class="caps">JSONB</span></em>
+format that allows storing non-structured data in <strong>PostgreSQL</strong>. The workflow of
+the request processing is shown in the following&nbsp;schema.</p>
+<p><img alt="Request processing" src="/images/pg-elastic-request-processing.png"></p>
+<p>The current version of the pg-elastic is just prototype which supports only a few
+basic types of request and developed as proof-of-the-concept.
+More information about supported <span class="caps">API</span> can be found on
+<a href="https://github.com/asp437/pg_elastic">GitHub project page</a>.</p>
+<h2>Usage</h2>
+<h3>Installation</h3>
+<p><code>pg_elastic</code> written in <em>Go</em> programing language which is required to build the application.
+All dependencies could be automatically downloaded via <code>go get</code> command.</p>
+<blockquote>
+<p><strong><em><span class="caps">IMPORTANT</span>!</em></strong> <code>pg_elastic</code> requires Go compiler version 1.9 or&nbsp;above.</p>
+</blockquote>
+<p>To download source code with all dependcies into <code>$GOPATH</code> environment&nbsp;use:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go get github.com/asp437/pg_elastic
+</pre></div>
+</td></tr></table>
+
+<p>To build the application and place executable file in current directory&nbsp;use:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go build github.com/asp437/pg_elastic
+</pre></div>
+</td></tr></table>
+
+<p>To build and install the application int <code>$GOPATH/bin</code> use:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go install github.com/asp437/pg_elastic
+</pre></div>
+</td></tr></table>
+
+<p>Built executable file could be found at <code>$GOPATH/bin/pg_elastic</code></p>
+<p>To run dev-version of application inside its directory&nbsp;execute:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go run main.go
+</pre></div>
+</td></tr></table>
+
+<h3>Basic&nbsp;actions</h3>
+<p>The following example written in Python shows basic requests based on tests
+included with <code>pg_elastic</code> and <code>elasticsearch_dsl</code> library as easy to use <strong>ElasticSearch</strong>&nbsp;driver</p>
+<p>First of all, we should create a document type to&nbsp;store:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Tweet</span><span class="p">(</span><span class="n">DocType</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">analyzer</span><span class="o">=</span><span class="s1">&#39;english&#39;</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">Text</span><span class="p">()</span>
+    <span class="n">post_date</span> <span class="o">=</span> <span class="n">Date</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="s1">&#39;twitter&#39;</span>
+        <span class="n">doc_type</span> <span class="o">=</span> <span class="s1">&#39;tweet&#39;</span>
+</pre></div>
+</td></tr></table>
+
+<p>The next piece of code shows how to store&nbsp;documnts:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;trying out Elasticsearch&#39;</span>
+<span class="n">user</span> <span class="o">=</span> <span class="s1">&#39;kimchy&#39;</span>
+<span class="n">tweet</span> <span class="o">=</span> <span class="n">Tweet</span><span class="p">(</span><span class="n">meta</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">post_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+<span class="n">tweet</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</td></tr></table>
+
+<p>The following code searches over the collection of&nbsp;documents:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">Search</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;twitter&quot;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;try&quot;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">Search</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;twitter&quot;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;trying&quot;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">Search</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;twitter&quot;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;elastic&quot;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Migration</h3>
+<p>To migrate data from existing <strong>ElasticSearch</strong> cluster into <strong>PostgreSQL</strong>
+instance for further usage with <code>pg_elastic</code> use migration tool which is
+available in the <code>pg_elastic_migrate</code> subpackage. It is automatically
+downloaded together with <code>pg_elastic</code> itself.</p>
+<p>To build the application and place executable file in current directory&nbsp;use:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go build github.com/asp437/pg_elastic/pg_elastic_migrate
+</pre></div>
+</td></tr></table>
+
+<p>To build and install it into <code>$GOPATH/bin</code> use:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>go install github.com/asp437/pg_elastic/pg_elastic_migrate
+</pre></div>
+</td></tr></table>
+
+<p>To use the tool you should provide information about both <strong>ElasticSearch</strong>
+source server and <strong>PostgreSQL</strong> destanation instance. For example(all parameters are&nbsp;optional):</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>pg_elastic_migrate -elasticsearch-host<span class="o">=</span>localhost:9200 -postgresql-host<span class="o">=</span>localhost:5432 -postgresql-user<span class="o">=</span>postgres -postgresql-password<span class="o">=</span>postgres -postgresql-database<span class="o">=</span>postgres
+</pre></div>
+</td></tr></table>
+
+<p>Built executable file could be found at <code>$GOPATH/bin/pg_elastic_migrate</code></p>
+<p>Use <code>-h</code> flag to get more information about tool&#8217;s&nbsp;parameters.</p>
+<h2>Conclusion</h2>
+<p>The development of the prototype showed that it is a quite challenging task to
+fully simulate the behavior of <strong>ElasticSearch</strong> in <strong>PostgreSQL</strong>. Nevertheless,
+it may worth in some cases, especially for systems with a <strong>PostgreSQL</strong> as
+the main data storage and <strong>ElasticSearch</strong> as an <span class="caps">FTS</span> engine due to removing of the
+synchronization&nbsp;process.</p>
+	<hr/>
+	<h6>Written by <a href="https://asp437.github.io/author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a> on 15/01/2018. Tags: <a href="https://asp437.github.io/tag/postgresql.html">PostgreSQL</a>, <a href="https://asp437.github.io/tag/fts.html">FTS</a>, <a href="https://asp437.github.io/tag/elasticsearch.html">ElasticSearch</a>, </h6>
+</article>
+
+<hr/>
+						</div>
+						<!-- End Main Content -->
+						<!-- Sidebar -->
+						<aside class="medium-3 hide-for-small-only columns">
+							<div class="panel">
+								<h5>Links</h5>
+								<ul class="side-nav">
+									<li><a href="http://getpelican.com/">Pelican</a></li>
+									<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
+									<li><a href="http://postgrespro.com">Postgres Professional</a></li>
+								</ul>
+							</div>
+
+							<div class="panel">
+								<h5>Tags</h5>
+								<ul class="tag-cloud">
+								</ul>
+							</div>
+
+
+							<div class="panel">
+								<h5>Social</h5>
+								<ul class="side-nav">
+									<li><a href="http://www.facebook.com/asp437">Facebook</a></li>
+									<li><a href="https://github.com/asp437/">GitHub</a></li>
+									<li><a href="http://www.linkedin.com/in/asp437">LinkedIn</a></li>
+								</ul>
+							</div>
+						</aside>
+						<!-- End Sidebar -->
+					</div>
+
+					<!-- Footer -->
+					<footer class="row">
+						<div class="medium-9 small-12">
+							<hr/>
+							<p class="text-center">© 2018 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
+						</div>
+					</footer>
+					<!-- End Footer -->
+				</section>
+				<a class="exit-off-canvas"></a>
+			</div><!--off-canvas inner-->
+		</div><!--off-canvas wrap-->
+
+		<script src="https://asp437.github.io/theme/js/jquery.js"></script>
+		<script src="https://asp437.github.io/theme/js/foundation.min.js"></script>
+		<script>
+			$(document).foundation();
+		</script>
+	</body>
+</html>
