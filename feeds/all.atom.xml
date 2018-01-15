@@ -163,6 +163,6 @@ source server and &lt;strong&gt;PostgreSQL&lt;/strong&gt; destanation instance. 
 &lt;h2&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;The development of the prototype showed that it is a quite challenging task to
 fully simulate the behavior of &lt;strong&gt;ElasticSearch&lt;/strong&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt;. Nevertheless,
-it may worth in some cases, especially for systems with a &lt;strong&gt;PostgreSQL&lt;/strong&gt; as
+it may worth in some cases, especially for systems with &lt;strong&gt;PostgreSQL&lt;/strong&gt; as
 the main data storage and &lt;strong&gt;ElasticSearch&lt;/strong&gt; as an &lt;span class="caps"&gt;FTS&lt;/span&gt; engine due to removing of the
 synchronization&amp;nbsp;process.&lt;/p&gt;</content><category term="PostgreSQL"></category><category term="FTS"></category><category term="ElasticSearch"></category></entry></feed>
