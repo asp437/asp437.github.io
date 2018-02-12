@@ -46,7 +46,7 @@ as well as fast execution speed and easy to deploy an&amp;nbsp;application.&lt;/
 &lt;p&gt;All documents and configurations stored in &lt;strong&gt;PostgreSQL&lt;/strong&gt; tables mainly in &lt;em&gt;&lt;span class="caps"&gt;JSONB&lt;/span&gt;&lt;/em&gt;
 format that allows storing non-structured data in &lt;strong&gt;PostgreSQL&lt;/strong&gt;. The workflow of
 the request processing is shown in the following&amp;nbsp;schema.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Request processing" src="/images/pg-elastic-request-processing.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Request processing" src="/images/pg-elastic-prototype/pg-elastic-request-processing.png"&gt;&lt;/p&gt;
 &lt;p&gt;The current version of the pg-elastic is just prototype which supports only a few
 basic types of request and developed as proof-of-the-concept.
 More information about supported &lt;span class="caps"&gt;API&lt;/span&gt; can be found on

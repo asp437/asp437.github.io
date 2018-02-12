@@ -1,0 +1,372 @@
+<!doctype html>
+<html class="no-js" lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>Aleksandr Parfenov's Blog</title>
+		<meta name="description" content="">
+		<meta name="author" content="Aleksandr Parfenov">
+
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/foundation.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/pygment/monokai.css" />
+		<link rel="stylesheet" href="https://asp437.github.io/theme/css/custom.css" />
+
+
+		<script src="https://asp437.github.io/theme/js/modernizr.js"></script>
+
+		<!-- Feeds -->
+		<link href="https://asp437.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Aleksandr Parfenov's Blog Atom Feed" />
+		<link href="https://asp437.github.io/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="Aleksandr Parfenov's Blog RSS Feed" />
+
+
+		<!-- mathjax config similar to math.stackexchange -->
+		<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({
+			jax: ["input/TeX", "output/HTML-CSS"],
+			tex2jax: {
+				inlineMath: [ ['$', '$'] ],
+				displayMath: [ ['$$', '$$']],
+				processEscapes: true,
+				skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+			},
+			messageStyle: "none",
+			"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+		});
+		</script>
+		<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+	</head>
+	<body>
+		<div class="off-canvas-wrap">
+			<div class="inner-wrap">
+				<!-- mobile top bar to activate nav -->
+				<nav class="tab-bar show-for-small">
+					<section class="left-small">
+						<a class="left-off-canvas-toggle menu-icon" ><span></span></a>
+					</section>
+
+					<section class="middle tab-bar-section">
+						<h1 class="title">Aleksandr&nbsp;Parfenov's&nbsp;Blog</h1>
+					</section>
+				</nav>
+
+				<!-- mobile side bar nav -->
+				<aside class="left-off-canvas-menu">
+					<ul class="off-canvas-list">
+						<li><a href="https://asp437.github.io">Home</a></li>
+						<li><label>Categories</label></li>
+							<li class="active"><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
+
+						<li><label>Links</label></li>
+							<li><a href="http://getpelican.com/">Pelican</a></li>
+							<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
+							<li><a href="http://postgrespro.com">Postgres Professional</a></li>
+
+
+
+						<li><label>Social</label></li>
+							<li><a href="http://www.facebook.com/asp437">Facebook</a></li>
+							<li><a href="https://github.com/asp437/">GitHub</a></li>
+							<li><a href="http://www.linkedin.com/in/asp437">LinkedIn</a></li>
+					</ul>	
+				</aside>
+
+				<!-- top bar nav -->
+				<nav class="top-bar hide-for-small-only" data-topbar>
+					<ul class="title-area">
+						<li class="name">
+							<h1><a href="https://asp437.github.io/">Aleksandr Parfenov's Blog</a></h1>
+						</li>
+					</ul>
+
+					<section class="top-bar-section">
+						<ul class="left">
+								<li class="active"><a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a></li>
+						</ul>
+                        <ul class="right">                                                                                                                                           
+                                                                                                          
+····                                                                                                                                       
+                                     <li><a href="https://asp437.github.io/pages/about.html">About</a></li>                                    
+                                                                                                                                          
+                                                                                                                                             
+                        </ul>  
+					</section>
+				</nav>
+
+				<!-- Main Page Content and Sidebar -->
+				<section class="main-section">
+					<div class="row">
+						<!-- Main Content -->
+						<div class="medium-9 small-12 columns" role="content">
+<article>
+	<h2>PostgreSQL Flexible Full Text&nbsp;Search</h2>
+	<p><strong>PostgreSQL</strong> is a powerful <em><span class="caps">RDBMS</span></em> which can store data as well as do some
+manipulations on it such as search or calculating some analytical information
+and one the techniques is <em><span class="caps">FTS</span></em>.
+The Full Text Search (or <em><span class="caps">FTS</span></em> for short) was introduced in <strong>PostgreSQL</strong>
+firstly as a <em>tsearch</em> extension and added into <strong>PostgreSQL</strong> 8.3 as a core feature.
+Unfortunately, since <strong>PostgreSQL</strong> 8.3 <em><span class="caps">FTS</span></em> almost didn&#8217;t change and have some issues
+which were detected during years of the work with it.
+I&#8217;m working on a patch to extend the abilities and flexibility of <em><span class="caps">FTS</span></em>
+configuration mechanism in <strong>PostgreSQL</strong> and want to describe
+it in more details in this&nbsp;post.</p>
+<!-- PELICAN_END_SUMMARY -->
+
+<h2>Basics of Full Text&nbsp;Search</h2>
+<p>First of all, let&#8217;s take a look at theory of <em><span class="caps">FTS</span></em> and its&nbsp;concepts.</p>
+<p><em><span class="caps">FTS</span></em> is a set of techniques to process text written in a natural language in order
+to do a search over documents with respect to language structure and rules.
+The most important parts of text processing are dividing the text into
+words (tokens) and normalize them.
+Most of the languages have some ways to generate one word from another by
+adding prefixes and suffixes to change the part of speech or slightly
+change the meaning or meet some grammar rule.
+However, the word didn&#8217;t change the root and still have the similar meaning.
+The example of the normalization is transforming word <code>jumps</code> to <code>jump</code>
+or change <code>processed</code> to <code>process</code>.
+The normalization allows us to search for any form of one&nbsp;word.</p>
+<p>One more concept of the <em><span class="caps">FTS</span></em> which is worth mention is stopwords.
+Stopword is a word which is too common in a language and can be
+found in most of the documents.
+A good example of stopwords are articles, conjunctions, and particles.
+Common way to work with stopwords is to ignore them because a query
+with stopword probably will return all&nbsp;documents.</p>
+<h2>Current Way to Configure <span class="caps">FTS</span> in&nbsp;PostgreSQL</h2>
+<p><em><span class="caps">FTS</span></em> model in <strong>PostgreSQL</strong> is shown in the following&nbsp;schema.</p>
+<p><img alt="FTS Concept" src="/images/flexible-fts/fts-concept.png"></p>
+<p>The type <code>tsvector</code> is a representation of the document ready for <em><span class="caps">FTS</span></em>
+and <code>tsquery</code> is a representation of the search query.
+Both types contain lexemes with some additional information such as positions
+or query&nbsp;operators.</p>
+<p><img alt="FTS Processing" src="/images/flexible-fts/fts-processing.png"></p>
+<p>Objects of both types are generated in a similar way, except parsing of query
+language during generation of <code>tsquery</code>.
+The parser and dictionaries steps are same for both.
+A parser is a software which divides a text into tokens and sends it to
+dictionaries, while dictionaries process each token to generate lexemes
+which will be used after the&nbsp;processing.</p>
+<p>An <em><span class="caps">FTS</span></em> configuration describes which parser and dictionaries use to process a text.
+Parser defines a list of possible token types.
+Each token type has it&#8217;s own dictionaries configuration
+Dictionaries are written in a chain and called one by one from left to right.
+The first non-<span class="caps">NULL</span> output will be used as an output of the whole chain
+(except <code>TSL_FILTER</code> case).</p>
+<h2>Full Text Search&nbsp;Problems</h2>
+<h3>Multilingual&nbsp;Search</h3>
+<p>One of the most common problems with <em><span class="caps">FTS</span></em> in <strong>PostgreSQL</strong> is the inability
+to process set of documents in different languages or a document
+which contains text in more than one language.
+The current way to solve the problem is to do a search in both languages
+separately and combine results.
+But this approach has few drawback such as storing redundant data
+in indices and complexity of ranking of the results.
+<a href="https://www.postgresql.org/message-id/flat/034a1475-4e88-227b-8f96-2bc64ce6998e%40gmail.com#034a1475-4e88-227b-8f96-2bc64ce6998e@gmail.com">Here</a>
+is one of the threads in pgsql mailing list with the discussion of the&nbsp;problem.</p>
+<h3>Morphological and Exact&nbsp;Search</h3>
+<p>Another common problem is a combination of morphological
+and exact search in one query.
+The morphological search is a search with respect to words
+structure and grammar rules as it was described in <strong>&#8220;Basics of Full Text Search&#8221;</strong>.
+On the other hand, in exact search, we shouldn&#8217;t change the form of the word.
+It may be useful to do a query with a special term of a name&nbsp;inside.</p>
+<p>Currently, it can be managed only by a combination of few
+<code>tsquery</code>/<code>tsvector</code> pairs and it&#8217;s hard to provide a user-friendly interface to&nbsp;it.</p>
+<h3>Special Stopwords&nbsp;Processing</h3>
+<p>Current <em><span class="caps">FTS</span></em> infrastructure doesn&#8217;t provide a way to configure stopwords processing.
+The stopwords processing should be implemented in each dictionary
+and we can&#8217;t use a special dictionary to work with stopwords or
+disable their processing in a dictionary
+(unless dictionary author adds such a parameter to it).
+Also, it makes dictionaries too complicated since each of them contains
+two functions and stopword filtering function is repeated in each&nbsp;dictionary.</p>
+<h2>Flexible Way to Configure <span class="caps">FTS</span> in&nbsp;PostgreSQL</h2>
+<p>The new approach to configure <em><span class="caps">FTS</span></em> based on an idea to add an ability to
+select how token should be processed according to an output of some dictionary
+expression and its mainly based on <code>CASE/WHEN/THEN/ELSE</code> syntax with some simplifications.
+According to the patch, an <em><span class="caps">FTS</span></em> configuration (<code>config</code>) is one of the following&nbsp;formats:</p>
+<ul>
+<li><code>dictionary_name</code></li>
+<li><code>config { UNION | INTERSECT | EXCEPT | MAP } config</code></li>
+<li><code>CASE config WHEN [ NO ] MATCH THEN { KEEP | config } [ ELSE config ] END</code></li>
+</ul>
+<p><code>UNION</code>, <code>INTERSECT</code>, and <code>EXCEPT</code> are same as for any other sets.
+Special operator <code>MAP</code> used to configure the behavior of filtering dictionary with any dictionary.
+It passes output of the left hand expression to the right one.
+If the left hand expression doesn&#8217;t return anything an original token used as input
+for right hand expression.
+Visit updated documentation to get a more detailed description of the new&nbsp;syntax:</p>
+<ul>
+<li><a href="/res/pg-fts-doc/textsearch.html">Full Text&nbsp;Search</a></li>
+<li><a href="/res/pg-fts-doc/sql-altertsconfig.html"><span class="caps">ALTER</span> <span class="caps">TEXT</span> <span class="caps">SEARCH</span> <span class="caps">CONFIGURATION</span></a></li>
+</ul>
+<h2>Use&nbsp;Cases</h2>
+<h3>Bilingual&nbsp;Search</h3>
+<p>With new configurations of <em><span class="caps">FTS</span></em> bilingual search can be described in
+one configuration which will combine a result of dictionaries for both languages.
+The following configuration combines English and German&nbsp;dictionaries:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">multi_en_de</span>
+    <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">word</span> <span class="k">WITH</span>
+        <span class="k">CASE</span> <span class="n">english_hunspell</span> <span class="k">WHEN</span> <span class="k">MATCH</span> <span class="k">THEN</span> <span class="n">KEEP</span> <span class="k">ELSE</span> <span class="n">english_stem</span> <span class="k">END</span>
+        <span class="k">UNION</span>
+        <span class="k">CASE</span> <span class="n">german_hunspell</span> <span class="k">WHEN</span> <span class="k">MATCH</span> <span class="k">THEN</span> <span class="n">KEEP</span> <span class="k">ELSE</span> <span class="n">german_stem</span> <span class="k">END</span><span class="p">;</span>
+</pre></div>
+</td></tr></table>
+
+<p>With such configuration, we can search over a set of bilingual documents without language markers (or documents which contains both English and&nbsp;German).</p>
+<p>In&nbsp;English:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">WITH</span> <span class="n">docs</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="k">as</span> <span class="p">(</span><span class="k">values</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Das geschah zu Beginn dieses Monats&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;with old stars and lacking gas and dust&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;25 light-years across, blown bywinds from its central&#39;</span><span class="p">))</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">docs</span> <span class="k">WHERE</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">&#39;multi_en_de&#39;</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">&#39;multi_en_de&#39;</span><span class="p">,</span> <span class="s1">&#39;lack&#39;</span><span class="p">);</span>
+ <span class="n">id</span> <span class="o">|</span>                   <span class="n">txt</span>
+<span class="c1">----+-----------------------------------------</span>
+  <span class="mi">2</span> <span class="o">|</span> <span class="k">with</span> <span class="k">old</span> <span class="n">stars</span> <span class="k">and</span> <span class="n">lacking</span> <span class="n">gas</span> <span class="k">and</span> <span class="n">dust</span>
+</pre></div>
+</td></tr></table>
+
+<p>And in&nbsp;German:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">WITH</span> <span class="n">docs</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="k">as</span> <span class="p">(</span><span class="k">values</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Das geschah zu Beginn dieses Monats&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;with old stars and lacking gas and dust&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;25 light-years across, blown bywinds from its central&#39;</span><span class="p">))</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">docs</span> <span class="k">WHERE</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">&#39;multi_en_de&#39;</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">&#39;multi_en_de&#39;</span><span class="p">,</span> <span class="s1">&#39;beginnen&#39;</span><span class="p">);</span>
+ <span class="n">id</span> <span class="o">|</span>                 <span class="n">txt</span>
+<span class="c1">----+-------------------------------------</span>
+  <span class="mi">1</span> <span class="o">|</span> <span class="n">Das</span> <span class="n">geschah</span> <span class="n">zu</span> <span class="n">Beginn</span> <span class="n">dieses</span> <span class="n">Monats</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Morphological and Exact&nbsp;Search</h3>
+<p>A combination of stemmer dictionary with <code>simple</code> may be used to mix
+search for an exact form of one word and linguistic search for&nbsp;others.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">exact_and_linguistic</span>
+    <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">word</span> <span class="k">WITH</span> <span class="n">english_stem</span> <span class="k">UNION</span> <span class="k">simple</span><span class="p">;</span>
+</pre></div>
+</td></tr></table>
+
+<p>And we can search for plural form of the word <code>star</code>:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">WITH</span> <span class="n">docs</span><span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="k">as</span> <span class="p">(</span><span class="k">values</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Supernova star&#39;</span><span class="p">),</span>
+                            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Supernova stars&#39;</span><span class="p">))</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">docs</span> <span class="k">WHERE</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">&#39;exact_and_linguistic&#39;</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span> <span class="o">@@</span> <span class="p">(</span><span class="n">to_tsquery</span><span class="p">(</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span> <span class="s1">&#39;stars&#39;</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">&#39;english&#39;</span><span class="p">,</span> <span class="s1">&#39;supernovae&#39;</span><span class="p">));</span>
+ <span class="n">id</span> <span class="o">|</span>       <span class="n">txt</span>
+<span class="c1">----+-----------------</span>
+  <span class="mi">2</span> <span class="o">|</span> <span class="n">Supernova</span> <span class="n">stars</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Special Stopwords&nbsp;Processing</h3>
+<p>With new configuration, it is possible to use a separate dictionary for a stopword detection and get rid of mixing two functions in one&nbsp;dictionary.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">stopword_separate</span>
+    <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">word</span> <span class="k">WITH</span> <span class="k">CASE</span> <span class="n">stopwords</span> <span class="k">WHEN</span> <span class="k">NO</span> <span class="k">MATCH</span> <span class="k">THEN</span> <span class="n">stemmer</span> <span class="k">END</span><span class="p">;</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Filtering&nbsp;dictionary</h3>
+<p>The filtering dictionaries are used to do a preprocessing of the word before the main dictionary processing.
+Currently, each filtering dictionary is designed to behave as a filter and there is no way to use it as a regular dictionary
+(unless you put it in the end of the chain) or use a regular dictionary as a filter.
+E.g. we can reimplement <code>thesaurus</code> to take out the preprocessing of dictionaries from it to the&nbsp;configuration.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">multi_en_de</span>
+    <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">word</span> <span class="k">WITH</span> <span class="n">english_stem</span> <span class="k">MAP</span> <span class="n">thesaurus</span><span class="p">;</span>
+</pre></div>
+</td></tr></table>
+
+<h2>Links</h2>
+<p><a href="https://commitfest.postgresql.org/17/1421/">Patch on&nbsp;Commitfest</a></p>
+<p><a href="https://www.postgresql.org/message-id/flat/20171019172409.731f52a7@asp437-24-g082ur#20171019172409.731f52a7@asp437-24-g082ur">Discussion in pgsql-hackers</a> (Everyone is welcome to participate in the discussion or do a&nbsp;review)</p>
+	<hr/>
+	<h6>Written by <a href="https://asp437.github.io/author/aleksandr-parfenov.html">Aleksandr Parfenov</a> in <a href="https://asp437.github.io/category/postgresql.html">PostgreSQL</a> on 11/02/2018. Tags: <a href="https://asp437.github.io/tag/postgresql.html">PostgreSQL</a>, <a href="https://asp437.github.io/tag/fts.html">FTS</a>, </h6>
+</article>
+
+<hr/>
+<div class="row">
+	<div class="small-12 columns">
+		<h3>Comments</h3>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_shortname = 'asp437ghblog';
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+		<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+	</div>
+</div>
+						</div>
+						<!-- End Main Content -->
+						<!-- Sidebar -->
+						<aside class="medium-3 hide-for-small-only columns">
+							<div class="panel">
+								<h5>Links</h5>
+								<ul class="side-nav">
+									<li><a href="http://getpelican.com/">Pelican</a></li>
+									<li><a href="http://postgresql.org/">PostgreSQL.org</a></li>
+									<li><a href="http://postgrespro.com">Postgres Professional</a></li>
+								</ul>
+							</div>
+
+							<div class="panel">
+								<h5>Tags</h5>
+								<ul class="tag-cloud">
+								</ul>
+							</div>
+
+
+							<div class="panel">
+								<h5>Social</h5>
+								<ul class="side-nav">
+									<li><a href="http://www.facebook.com/asp437">Facebook</a></li>
+									<li><a href="https://github.com/asp437/">GitHub</a></li>
+									<li><a href="http://www.linkedin.com/in/asp437">LinkedIn</a></li>
+								</ul>
+							</div>
+						</aside>
+						<!-- End Sidebar -->
+					</div>
+
+					<!-- Footer -->
+					<footer class="row">
+						<div class="medium-9 small-12">
+							<hr/>
+							<p class="text-center">© 2018 Aleksandr Parfenov - Powered by <a href="http://getpelican.com">Pelican</a>. Theme by <a href="http://hamaluik.com">Kenton Hamaluik</a>.</p>
+						</div>
+					</footer>
+					<!-- End Footer -->
+				</section>
+				<a class="exit-off-canvas"></a>
+			</div><!--off-canvas inner-->
+		</div><!--off-canvas wrap-->
+
+		<script src="https://asp437.github.io/theme/js/jquery.js"></script>
+		<script src="https://asp437.github.io/theme/js/foundation.min.js"></script>
+		<script>
+			$(document).foundation();
+		</script>
+	</body>
+</html>
