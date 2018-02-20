@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Aleksandr Parfenov's Blog</title><link>https://asp437.github.io/</link><description></description><lastBuildDate>Sun, 11 Feb 2018 00:00:00 +0300</lastBuildDate><item><title>PostgreSQL Flexible Full Text Search</title><link>https://asp437.github.io/posts/flexible-fts.html</link><description>&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt; is a powerful &lt;em&gt;&lt;span class="caps"&gt;RDBMS&lt;/span&gt;&lt;/em&gt; which can store data as well as do some
+<rss version="2.0"><channel><title>Aleksandr Parfenov's Blog</title><link>https://asp437.github.io/</link><description></description><lastBuildDate>Tue, 20 Feb 2018 00:00:00 +0300</lastBuildDate><item><title>PostgreSQL Flexible Full Text Search</title><link>https://asp437.github.io/posts/flexible-fts.html</link><description>&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt; is a powerful &lt;em&gt;&lt;span class="caps"&gt;RDBMS&lt;/span&gt;&lt;/em&gt; which can store data as well as do some
 manipulations on it such as search or calculating some analytical information
 and one the techniques is &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;.
 The Full Text Search (or &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; for short) was introduced in &lt;strong&gt;PostgreSQL&lt;/strong&gt;
@@ -9,7 +9,7 @@ which were detected during years of the work with it.
 I&amp;#8217;m working on a patch to extend the abilities and flexibility of &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;
 configuration mechanism in &lt;strong&gt;PostgreSQL&lt;/strong&gt; and want to describe
 it in more details in this&amp;nbsp;post.&lt;/p&gt;
-</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aleksandr Parfenov</dc:creator><pubDate>Sun, 11 Feb 2018 00:00:00 +0300</pubDate><guid isPermaLink="false">tag:asp437.github.io,2018-02-11:/posts/flexible-fts.html</guid><category>PostgreSQL</category><category>FTS</category></item><item><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link>https://asp437.github.io/posts/pg-elastic-prototype.html</link><description>&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Aleksandr Parfenov</dc:creator><pubDate>Tue, 20 Feb 2018 00:00:00 +0300</pubDate><guid isPermaLink="false">tag:asp437.github.io,2018-02-20:/posts/flexible-fts.html</guid><category>PostgreSQL</category><category>FTS</category></item><item><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link>https://asp437.github.io/posts/pg-elastic-prototype.html</link><description>&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
 &lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework
 for text processing and provides additional components to it such as indices
 and easy-to-use &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt;.
