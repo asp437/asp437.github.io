@@ -1,5 +1,211 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Aleksandr Parfenov's Blog - PostgreSQL</title><link href="https://asp437.github.io/" rel="alternate"></link><link href="https://asp437.github.io/feeds/postgresql.atom.xml" rel="self"></link><id>https://asp437.github.io/</id><updated>2018-01-15T00:00:00+03:00</updated><entry><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link href="https://asp437.github.io/posts/pg-elastic-prototype.html" rel="alternate"></link><published>2018-01-15T00:00:00+03:00</published><updated>2018-01-15T00:00:00+03:00</updated><author><name>Aleksandr Parfenov</name></author><id>tag:asp437.github.io,2018-01-15:/posts/pg-elastic-prototype.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Aleksandr Parfenov's Blog - PostgreSQL</title><link href="https://asp437.github.io/" rel="alternate"></link><link href="https://asp437.github.io/feeds/postgresql.atom.xml" rel="self"></link><id>https://asp437.github.io/</id><updated>2018-02-11T00:00:00+03:00</updated><entry><title>PostgreSQL Flexible Full Text Search</title><link href="https://asp437.github.io/posts/flexible-fts.html" rel="alternate"></link><published>2018-02-11T00:00:00+03:00</published><updated>2018-02-11T00:00:00+03:00</updated><author><name>Aleksandr Parfenov</name></author><id>tag:asp437.github.io,2018-02-11:/posts/flexible-fts.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt; is a powerful &lt;em&gt;&lt;span class="caps"&gt;RDBMS&lt;/span&gt;&lt;/em&gt; which can store data as well as do some
+manipulations on it such as search or calculating some analytical information
+and one the techniques is &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;.
+The Full Text Search (or &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; for short) was introduced in &lt;strong&gt;PostgreSQL&lt;/strong&gt;
+firstly as a &lt;em&gt;tsearch&lt;/em&gt; extension and added into &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 as a core feature.
+Unfortunately, since &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; almost didn&amp;#8217;t change and have some issues
+which were detected during years of the work with it.
+I&amp;#8217;m working on a patch to extend the abilities and flexibility of &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;
+configuration mechanism in &lt;strong&gt;PostgreSQL&lt;/strong&gt; and want to describe
+it in more details in this&amp;nbsp;post.&lt;/p&gt;
+</summary><content type="html">&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt; is a powerful &lt;em&gt;&lt;span class="caps"&gt;RDBMS&lt;/span&gt;&lt;/em&gt; which can store data as well as do some
+manipulations on it such as search or calculating some analytical information
+and one the techniques is &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;.
+The Full Text Search (or &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; for short) was introduced in &lt;strong&gt;PostgreSQL&lt;/strong&gt;
+firstly as a &lt;em&gt;tsearch&lt;/em&gt; extension and added into &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 as a core feature.
+Unfortunately, since &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; almost didn&amp;#8217;t change and have some issues
+which were detected during years of the work with it.
+I&amp;#8217;m working on a patch to extend the abilities and flexibility of &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;
+configuration mechanism in &lt;strong&gt;PostgreSQL&lt;/strong&gt; and want to describe
+it in more details in this&amp;nbsp;post.&lt;/p&gt;
+
+
+&lt;h2&gt;Basics of Full Text&amp;nbsp;Search&lt;/h2&gt;
+&lt;p&gt;First of all, let&amp;#8217;s take a look at theory of &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; and its&amp;nbsp;concepts.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; is a set of techniques to process text written in a natural language in order
+to do a search over documents with respect to language structure and rules.
+The most important parts of text processing are dividing the text into
+words (tokens) and normalize them.
+Most of the languages have some ways to generate one word from another by
+adding prefixes and suffixes to change the part of speech or slightly
+change the meaning or meet some grammar rule.
+However, the word didn&amp;#8217;t change the root and still have the similar meaning.
+The example of the normalization is transforming word &lt;code&gt;jumps&lt;/code&gt; to &lt;code&gt;jump&lt;/code&gt;
+or change &lt;code&gt;processed&lt;/code&gt; to &lt;code&gt;process&lt;/code&gt;.
+The normalization allows us to search for any form of one&amp;nbsp;word.&lt;/p&gt;
+&lt;p&gt;One more concept of the &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; which is worth mention is stopwords.
+Stopword is a word which is too common in a language and can be
+found in most of the documents.
+A good example of stopwords are articles, conjunctions, and particles.
+Common way to work with stopwords is to ignore them because a query
+with stopword probably will return all&amp;nbsp;documents.&lt;/p&gt;
+&lt;h2&gt;Current Way to Configure &lt;span class="caps"&gt;FTS&lt;/span&gt; in&amp;nbsp;PostgreSQL&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; model in &lt;strong&gt;PostgreSQL&lt;/strong&gt; is shown in the following&amp;nbsp;schema.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="FTS Concept" src="/images/flexible-fts/fts-concept.png"&gt;&lt;/p&gt;
+&lt;p&gt;The type &lt;code&gt;tsvector&lt;/code&gt; is a representation of the document ready for &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt;
+and &lt;code&gt;tsquery&lt;/code&gt; is a representation of the search query.
+Both types contain lexemes with some additional information such as positions
+or query&amp;nbsp;operators.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="FTS Processing" src="/images/flexible-fts/fts-processing.png"&gt;&lt;/p&gt;
+&lt;p&gt;Objects of both types are generated in a similar way, except parsing of query
+language during generation of &lt;code&gt;tsquery&lt;/code&gt;.
+The parser and dictionaries steps are same for both.
+A parser is a software which divides a text into tokens and sends it to
+dictionaries, while dictionaries process each token to generate lexemes
+which will be used after the&amp;nbsp;processing.&lt;/p&gt;
+&lt;p&gt;An &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; configuration describes which parser and dictionaries use to process a text.
+Parser defines a list of possible token types.
+Each token type has it&amp;#8217;s own dictionaries configuration
+Dictionaries are written in a chain and called one by one from left to right.
+The first non-&lt;span class="caps"&gt;NULL&lt;/span&gt; output will be used as an output of the whole chain
+(except &lt;code&gt;TSL_FILTER&lt;/code&gt; case).&lt;/p&gt;
+&lt;h2&gt;Full Text Search&amp;nbsp;Problems&lt;/h2&gt;
+&lt;h3&gt;Multilingual&amp;nbsp;Search&lt;/h3&gt;
+&lt;p&gt;One of the most common problems with &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt; is the inability
+to process set of documents in different languages or a document
+which contains text in more than one language.
+The current way to solve the problem is to do a search in both languages
+separately and combine results.
+But this approach has few drawback such as storing redundant data
+in indices and complexity of ranking of the results.
+&lt;a href="https://www.postgresql.org/message-id/flat/034a1475-4e88-227b-8f96-2bc64ce6998e%40gmail.com#034a1475-4e88-227b-8f96-2bc64ce6998e@gmail.com"&gt;Here&lt;/a&gt;
+is one of the threads in pgsql mailing list with the discussion of the&amp;nbsp;problem.&lt;/p&gt;
+&lt;h3&gt;Morphological and Exact&amp;nbsp;Search&lt;/h3&gt;
+&lt;p&gt;Another common problem is a combination of morphological
+and exact search in one query.
+The morphological search is a search with respect to words
+structure and grammar rules as it was described in &lt;strong&gt;&amp;#8220;Basics of Full Text Search&amp;#8221;&lt;/strong&gt;.
+On the other hand, in exact search, we shouldn&amp;#8217;t change the form of the word.
+It may be useful to do a query with a special term of a name&amp;nbsp;inside.&lt;/p&gt;
+&lt;p&gt;Currently, it can be managed only by a combination of few
+&lt;code&gt;tsquery&lt;/code&gt;/&lt;code&gt;tsvector&lt;/code&gt; pairs and it&amp;#8217;s hard to provide a user-friendly interface to&amp;nbsp;it.&lt;/p&gt;
+&lt;h3&gt;Special Stopwords&amp;nbsp;Processing&lt;/h3&gt;
+&lt;p&gt;Current &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; infrastructure doesn&amp;#8217;t provide a way to configure stopwords processing.
+The stopwords processing should be implemented in each dictionary
+and we can&amp;#8217;t use a special dictionary to work with stopwords or
+disable their processing in a dictionary
+(unless dictionary author adds such a parameter to it).
+Also, it makes dictionaries too complicated since each of them contains
+two functions and stopword filtering function is repeated in each&amp;nbsp;dictionary.&lt;/p&gt;
+&lt;h2&gt;Flexible Way to Configure &lt;span class="caps"&gt;FTS&lt;/span&gt; in&amp;nbsp;PostgreSQL&lt;/h2&gt;
+&lt;p&gt;The new approach to configure &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; based on an idea to add an ability to
+select how token should be processed according to an output of some dictionary
+expression and its mainly based on &lt;code&gt;CASE/WHEN/THEN/ELSE&lt;/code&gt; syntax with some simplifications.
+According to the patch, an &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; configuration (&lt;code&gt;config&lt;/code&gt;) is one of the following&amp;nbsp;formats:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;dictionary_name&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;config { UNION | INTERSECT | EXCEPT | MAP } config&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CASE config WHEN [ NO ] MATCH THEN { KEEP | config } [ ELSE config ] END&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;UNION&lt;/code&gt;, &lt;code&gt;INTERSECT&lt;/code&gt;, and &lt;code&gt;EXCEPT&lt;/code&gt; are same as for any other sets.
+Special operator &lt;code&gt;MAP&lt;/code&gt; used to configure the behavior of filtering dictionary with any dictionary.
+It passes output of the left hand expression to the right one.
+If the left hand expression doesn&amp;#8217;t return anything an original token used as input
+for right hand expression.
+Visit updated documentation to get a more detailed description of the new&amp;nbsp;syntax:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="/res/pg-fts-doc/textsearch.html"&gt;Full Text&amp;nbsp;Search&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="/res/pg-fts-doc/sql-altertsconfig.html"&gt;&lt;span class="caps"&gt;ALTER&lt;/span&gt; &lt;span class="caps"&gt;TEXT&lt;/span&gt; &lt;span class="caps"&gt;SEARCH&lt;/span&gt; &lt;span class="caps"&gt;CONFIGURATION&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Use&amp;nbsp;Cases&lt;/h2&gt;
+&lt;h3&gt;Bilingual&amp;nbsp;Search&lt;/h3&gt;
+&lt;p&gt;With new configurations of &lt;em&gt;&lt;span class="caps"&gt;FTS&lt;/span&gt;&lt;/em&gt; bilingual search can be described in
+one configuration which will combine a result of dictionaries for both languages.
+The following configuration combines English and German&amp;nbsp;dictionaries:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;multi_en_de&lt;/span&gt;
+    &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt;
+        &lt;span class="k"&gt;CASE&lt;/span&gt; &lt;span class="n"&gt;english_hunspell&lt;/span&gt; &lt;span class="k"&gt;WHEN&lt;/span&gt; &lt;span class="k"&gt;MATCH&lt;/span&gt; &lt;span class="k"&gt;THEN&lt;/span&gt; &lt;span class="n"&gt;KEEP&lt;/span&gt; &lt;span class="k"&gt;ELSE&lt;/span&gt; &lt;span class="n"&gt;english_stem&lt;/span&gt; &lt;span class="k"&gt;END&lt;/span&gt;
+        &lt;span class="k"&gt;UNION&lt;/span&gt;
+        &lt;span class="k"&gt;CASE&lt;/span&gt; &lt;span class="n"&gt;german_hunspell&lt;/span&gt; &lt;span class="k"&gt;WHEN&lt;/span&gt; &lt;span class="k"&gt;MATCH&lt;/span&gt; &lt;span class="k"&gt;THEN&lt;/span&gt; &lt;span class="n"&gt;KEEP&lt;/span&gt; &lt;span class="k"&gt;ELSE&lt;/span&gt; &lt;span class="n"&gt;german_stem&lt;/span&gt; &lt;span class="k"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;With such configuration, we can search over a set of bilingual documents without language markers (or documents which contains both English and&amp;nbsp;German).&lt;/p&gt;
+&lt;p&gt;In&amp;nbsp;English:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5
+6
+7&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;values&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Das geschah zu Beginn dieses Monats&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;with old stars and lacking gas and dust&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;25 light-years across, blown bywinds from its central&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;multi_en_de&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;multi_en_de&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;lack&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+ &lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;                   &lt;span class="n"&gt;txt&lt;/span&gt;
+&lt;span class="c1"&gt;----+-----------------------------------------&lt;/span&gt;
+  &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="k"&gt;old&lt;/span&gt; &lt;span class="n"&gt;stars&lt;/span&gt; &lt;span class="k"&gt;and&lt;/span&gt; &lt;span class="n"&gt;lacking&lt;/span&gt; &lt;span class="n"&gt;gas&lt;/span&gt; &lt;span class="k"&gt;and&lt;/span&gt; &lt;span class="n"&gt;dust&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;And in&amp;nbsp;German:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5
+6
+7&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;values&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Das geschah zu Beginn dieses Monats&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;with old stars and lacking gas and dust&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;25 light-years across, blown bywinds from its central&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;multi_en_de&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;multi_en_de&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;beginnen&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+ &lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;                 &lt;span class="n"&gt;txt&lt;/span&gt;
+&lt;span class="c1"&gt;----+-------------------------------------&lt;/span&gt;
+  &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;Das&lt;/span&gt; &lt;span class="n"&gt;geschah&lt;/span&gt; &lt;span class="n"&gt;zu&lt;/span&gt; &lt;span class="n"&gt;Beginn&lt;/span&gt; &lt;span class="n"&gt;dieses&lt;/span&gt; &lt;span class="n"&gt;Monats&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h3&gt;Morphological and Exact&amp;nbsp;Search&lt;/h3&gt;
+&lt;p&gt;A combination of stemmer dictionary with &lt;code&gt;simple&lt;/code&gt; may be used to mix
+search for an exact form of one word and linguistic search for&amp;nbsp;others.&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;exact_and_linguistic&lt;/span&gt;
+    &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;english_stem&lt;/span&gt; &lt;span class="k"&gt;UNION&lt;/span&gt; &lt;span class="k"&gt;simple&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;p&gt;And we can search for plural form of the word &lt;code&gt;star&lt;/code&gt;:&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2
+3
+4
+5
+6&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;values&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Supernova star&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+                            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Supernova stars&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;exact_and_linguistic&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;simple&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;stars&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;english&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;supernovae&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+ &lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt;       &lt;span class="n"&gt;txt&lt;/span&gt;
+&lt;span class="c1"&gt;----+-----------------&lt;/span&gt;
+  &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;Supernova&lt;/span&gt; &lt;span class="n"&gt;stars&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h3&gt;Special Stopwords&amp;nbsp;Processing&lt;/h3&gt;
+&lt;p&gt;With new configuration, it is possible to use a separate dictionary for a stopword detection and get rid of mixing two functions in one&amp;nbsp;dictionary.&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;stopword_separate&lt;/span&gt;
+    &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="k"&gt;CASE&lt;/span&gt; &lt;span class="n"&gt;stopwords&lt;/span&gt; &lt;span class="k"&gt;WHEN&lt;/span&gt; &lt;span class="k"&gt;NO&lt;/span&gt; &lt;span class="k"&gt;MATCH&lt;/span&gt; &lt;span class="k"&gt;THEN&lt;/span&gt; &lt;span class="n"&gt;stemmer&lt;/span&gt; &lt;span class="k"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h3&gt;Filtering&amp;nbsp;dictionary&lt;/h3&gt;
+&lt;p&gt;The filtering dictionaries are used to do a preprocessing of the word before the main dictionary processing.
+Currently, each filtering dictionary is designed to behave as a filter and there is no way to use it as a regular dictionary
+(unless you put it in the end of the chain) or use a regular dictionary as a filter.
+E.g. we can reimplement &lt;code&gt;thesaurus&lt;/code&gt; to take out the preprocessing of dictionaries from it to the&amp;nbsp;configuration.&lt;/p&gt;
+&lt;table class="highlighttable"&gt;&lt;tr&gt;&lt;td class="linenos"&gt;&lt;div class="linenodiv"&gt;&lt;pre&gt;1
+2&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;multi_en_de&lt;/span&gt;
+    &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;english_stem&lt;/span&gt; &lt;span class="k"&gt;MAP&lt;/span&gt; &lt;span class="n"&gt;thesaurus&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+
+&lt;h2&gt;Links&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://commitfest.postgresql.org/17/1421/"&gt;Patch on&amp;nbsp;Commitfest&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://www.postgresql.org/message-id/flat/20171019172409.731f52a7@asp437-24-g082ur#20171019172409.731f52a7@asp437-24-g082ur"&gt;Discussion in pgsql-hackers&lt;/a&gt; (Everyone is welcome to participate in the discussion or do a&amp;nbsp;review)&lt;/p&gt;</content><category term="PostgreSQL"></category><category term="FTS"></category></entry><entry><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link href="https://asp437.github.io/posts/pg-elastic-prototype.html" rel="alternate"></link><published>2018-01-15T00:00:00+03:00</published><updated>2018-01-15T00:00:00+03:00</updated><author><name>Aleksandr Parfenov</name></author><id>tag:asp437.github.io,2018-01-15:/posts/pg-elastic-prototype.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
 &lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework
 for text processing and provides additional components to it such as indices
 and easy-to-use &lt;span class="caps"&gt;REST&lt;/span&gt; &lt;span class="caps"&gt;API&lt;/span&gt;.
