@@ -1,0 +1,64 @@
+<!doctype html><html lang=en><head><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><meta charset=utf-8><meta name=X-UA-Compatible content="IE=edge"><meta name=google-site-verification content><meta content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=5" name=viewport><meta content="telephone=no" name=format-detection><meta name=description content="Proof-of-concept proxy to use PostgreSQL instead of ElasticSearch."><meta name=renderer content="webkit"><meta name=theme-color content="#ffffff"><script src=/js/toc.js></script><link type=text/css rel=stylesheet href=/vendor/css/bootstrap.min.css><link rel=stylesheet href=/scss/journal.min.cde89529461ad7c91dfceb0d7412bdde3b67be777e2f040b93ed8497b04091ee.css integrity="sha256-zeiVKUYa18kd/OsNdBK93jtnvnd+LwQLk+2El7BAke4=" media=screen><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Material+Icons"><script defer src=https://static.cloudflareinsights.com/beacon.min.js data-cf-beacon='{"token": "a63a55c57cc24ceda67a399b13d686d8"}'></script><style type=text/css>.content_center{text-align:center;align-content:center}</style></head><body><div id=app><div class=single-column-drawer-container id=drawer v-bind:class="{ 'single-column-drawer-container-active': isDrawerOpen }"><div class=drawer-content><div class=drawer-menu><a class="a-block drawer-menu-item false" href=/about>О блоге и авторе
+</a><a class="a-block drawer-menu-item false" href=/blog/index.xml>RSS Feed</a></div></div></div><transition name=fade><div id=drawer-mask v-bind:class="{ 'single-column-drawer-mask': mounted }" v-if=isDrawerOpen v-on:click=toggleDrawer></div></transition><nav id=navBar class="navbar sticky-top navbar-light single-column-nav-container"><div id=navBackground class=nav-background></div><div class="container container-narrow nav-content"><button id=nav_dropdown_btn class=nav-dropdown-toggle type=button v-on:click=toggleDrawer>
+<i class=material-icons>menu
+</i></button>
+<a id=navTitle class=navbar-brand href=https://asp437.github.io/en/>asp437 Blog</a></div></nav><div class=single-column-header-container id=pageHead v-bind:style="{ transform: 'translateZ(0px) translateY('+.3*scrollY+'px)', opacity: 1-navOpacity }"><a href=https://asp437.github.io/en/><div class=single-column-header-title>asp437 Blog</div></a></div><div id=content><div id=streamContainer class=stream-container><div class="post-list-container post-list-container-shadow"><div class=post><div class=post-head-wrapper style=background-image:url(/en/blog/2018/pg_elastic_intro/pg_elastic_header.png)><div class=post-title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol<div class=post-subtitle>Proof-of-concept proxy to use PostgreSQL instead of ElasticSearch.</div><div class=post-meta><time itemprop=datePublished>2018-01-15 11:45
+</time><i class=material-icons>label</i>
+<a href=/en/tags/postgresql>postgresql</a>
+&nbsp;
+<a href=/en/tags/fts>fts</a>
+&nbsp;
+<a href=/en/tags/elastic>elastic</a>
+&nbsp;
+<a href=/en/tags/pet-projects>pet-projects</a>
+&nbsp;</div></div></div><div class=post-body-wrapper><div class=post-body v-pre><p><strong>ElasticSearch</strong> is one of the most popular solutions for Full-Text Search.
+<strong>ElasticSearch</strong> is based on <em>Apache Lucene</em>, powerful and flexible framework for text processing and provides additional components to it such as indices and easy-to-use REST API.
+On the other hand, <strong>PostgreSQL</strong> also provides FTS features and widely used to store huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use <strong>PostgreSQL</strong> via <strong>ElasticSearch</strong> protocol.
+The source code of the prototype is published on <a href=https://github.com/asp437/pg_elastic>GitHub project page</a>.</p><h2 id=motivation>Motivation</h2><p>There is a number of different reasons to use such a server. Let’s look at some of them.</p><p>One of the most simple reasons is an intention to use as less of applications as possible since each application in infrastructure requires an effort to configuration and maintenance.
+In that case, we can remove one complex component of the infrastructure and replace it with a simple one.
+Also, it removes the problem of synchronization of two separate data-store components.</p><p>Another example is a migrating system to <strong>PostgreSQL</strong> as main data storage.
+In that case, the pg-elastic can help to move from one platform to another faster, without rewriting the client application immediately.
+It is clear that this could better not to use as a permanent solution, but it can dramatically reduce the number of problems during migration.</p><p>And the third reason is a performance boost in some special cases which can be used in your application.
+<strong>PostgreSQL</strong> has few index types that are aimed to use in FTS problems and some of them optimised for a narrow range of operation to perform very fast.</p><h2 id=prototype-implementation>Prototype implementation</h2><p>The basic idea of the solution is to fully simulate <strong>ElasticSearch</strong> REST API and proxy all requests to <strong>PostgreSQL</strong> instance.
+The server is written in Go in order to process requests asynchronously in an easy way and get some other useful tools as well as fast execution speed and easy to deploy an application.</p><p>All documents and configurations stored in <strong>PostgreSQL</strong> tables mainly in JSONB format that allows storing non-structured data in <strong>PostgreSQL</strong>.
+The workflow of the request processing is shown in the following schema.</p><p><img src=/en/blog/2018/pg_elastic_intro/pg-elastic-request-processing.png alt="Request processing schema"></p><p>The current version of the pg-elastic is just prototype which supports only a few basic types of request and developed as proof-of-the-concept.
+More information about supported API can be found on <a href=https://github.com/asp437/pg_elastic>GitHub project page</a>.</p><h2 id=usage>Usage</h2><h3 id=installation>Installation</h3><p><code>pg_elastic</code> written in Go programing language which is required to build the application.
+All dependencies could be automatically downloaded via go get command.</p><blockquote><p>IMPORTANT! pg_elastic requires Go compiler version 1.9 or above.</p></blockquote><p>To download source code with all dependcies into <code>$GOPATH</code> environment use:</p><pre tabindex=0><code>go get github.com/asp437/pg_elastic
+</code></pre><p>To build the application and place executable file in current directory use:</p><pre tabindex=0><code>go build github.com/asp437/pg_elastic
+</code></pre><p>To build and install the application in <code>$GOPATH/bin</code> use:</p><pre tabindex=0><code>go install github.com/asp437/pg_elastic
+</code></pre><p>Built executable file could be found at <code>$GOPATH/bin/pg_elastic</code></p><p>To run dev-version of application inside its directory execute:</p><pre tabindex=0><code>go run main.go
+</code></pre><h3 id=basic-actions>Basic actions</h3><p>The following example written in Python shows basic requests based on tests included with <code>pg_elastic</code> and <code>elasticsearch_dsl</code> library as easy to use <strong>ElasticSearch</strong> driver</p><p>First of all, we should create a document type to store:</p><pre tabindex=0><code>class Tweet(DocType):
+    message = Text(analyzer=&#39;english&#39;)
+    user = Text()
+    post_date = Date()
+
+    class Meta:
+        index = &#39;twitter&#39;
+        doc_type = &#39;tweet&#39;
+</code></pre><p>The next piece of code shows how to store documnts:</p><pre tabindex=0><code>message = &#39;trying out Elasticsearch&#39;
+user = &#39;kimchy&#39;
+tweet = Tweet(meta={&#39;id&#39;: 1}, message=message, user=user, post_date = datetime.now())
+tweet.save()
+</code></pre><p>The following code searches over the collection of documents:</p><pre tabindex=0><code>s = Search(index=&#34;twitter&#34;) \
+    .query(&#34;match&#34;, message=&#34;try&#34;)
+response = s.execute()
+
+s = Search(index=&#34;twitter&#34;) \
+    .query(&#34;match&#34;, message=&#34;trying&#34;)
+response = s.execute()
+
+s = Search(index=&#34;twitter&#34;) \
+    .query(&#34;match&#34;, message=&#34;elastic&#34;)
+response = s.execute()
+</code></pre><h3 id=migration>Migration</h3><p>To migrate data from existing <strong>ElasticSearch</strong> cluster into <strong>PostgreSQL</strong> instance for further usage with <code>pg_elastic</code> use migration tool which is available in the <code>pg_elastic_migrate</code> subpackage.
+It is automatically downloaded together with <code>pg_elastic</code> itself.</p><p>To build the application and place executable file in current directory use:</p><pre tabindex=0><code>go build github.com/asp437/pg_elastic/pg_elastic_migrate
+</code></pre><p>To build and install it into <code>$GOPATH/bin</code> use:</p><pre tabindex=0><code>go install github.com/asp437/pg_elastic/pg_elastic_migrate
+</code></pre><p>To use the tool you should provide information about both <strong>ElasticSearch</strong> source server and <strong>PostgreSQL</strong> destanation instance.
+For example(all parameters are optional):</p><pre tabindex=0><code>pg_elastic_migrate -elasticsearch-host=localhost:9200 -postgresql-host=localhost:5432 -postgresql-user=postgres -postgresql-password=postgres -postgresql-database=postgres
+</code></pre><p>Built executable file could be found at <code>$GOPATH/bin/pg_elastic_migrate</code>.</p><p>Use <code>-h</code> flag to get more information about tool’s parameters.</p><h2 id=conclusion>Conclusion</h2><p>The development of the prototype showed that it is a quite challenging task to fully simulate the behavior of <strong>ElasticSearch</strong> in <strong>PostgreSQL</strong>.
+Nevertheless, it may worth in some cases, especially for systems with <strong>PostgreSQL</strong> as the main data storage and <strong>ElasticSearch</strong> as an FTS engine due to removing of the synchronization process.</p><hr width=100% id=EOF><p style=color:#777>Last modified on 2018-01-15</p></div></div><nav class=post-pagination><a class=newer-posts href=/en/blog/2018/postgresql_flexible_fts/>Next<br>PostgreSQL Flexible Full Text Search
+</a><a class=older-posts>Previous<br>No older posts.</a></nav><div class=post-comment-wrapper></div></div></div></div></div><div id=sideContainer class=side-container><a class="a-block nav-head false" href=https://asp437.github.io/en/><div class=nav-title>asp437 Blog</div></a><div class=nav-link-list><a class="a-block nav-link-item false" href=/about>О блоге и авторе
+</a><a class="a-block nav-link-item false" href=/blog/index.xml>RSS Feed</a></div><div class=nav-footer>Hugo Theme <a href=https://github.com/amazingrise/hugo-theme-diary>Diary</a> by <a href=https://risehere.net/>Rise</a><br>Ported from <a href=https://mak1t0.cc/ target=_blank rel="noreferrer noopener">Makito</a>'s <a href=https://github.com/SumiMakito/hexo-theme-journal/ target=_blank rel="noreferrer noopener">Journal.</a><br><br>&copy;
+2018 asp437 Blog</div></div><div id=extraContainer class=extra-container><div class=toc-wrapper><div class=toc><div class=toc-content><ul><ul><li><a href=#motivation class=nav-motivation>- Motivation</a></li><li><a href=#prototype-implementation class=nav-prototype-implementation>- Prototype implementation</a></li><li><a href=#usage class=nav-usage>- Usage</a></li><ul><li><a href=#installation class=nav-installation>- Installation</a></li><li><a href=#basic-actions class=nav-basic-actions>- Basic actions</a></li><li><a href=#migration class=nav-migration>- Migration</a></li></ul><li><a href=#conclusion class=nav-conclusion>- Conclusion</a></li></ul></div></div></div><div class=pagination><a id=globalBackToTop class="pagination-action animated-visibility" href=#top :class="{ invisible: scrollY == 0 }"><i class="material-icons pagination-action-icon">keyboard_arrow_up</i></a></div></div><div id=single-column-footer>Hugo Theme <a href=https://github.com/amazingrise/hugo-theme-diary>Diary</a> by <a href=https://risehere.net/>Rise</a><br>Ported from <a href=https://mak1t0.cc/ target=_blank rel="noreferrer noopener">Makito</a>'s <a href=https://github.com/SumiMakito/hexo-theme-journal/ target=_blank rel="noreferrer noopener">Journal.</a><br><br>&copy;
+2018 asp437 Blog</div></div><script src=/js/journal.js></script></body></html>

@@ -1,0 +1,207 @@
+<?xml-stylesheet href="/rss.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>asp437 Blog</title><link>https://asp437.github.io/en/</link><description>Recent content on asp437 Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>--- (Aleksandr Parfenov)</managingEditor><webMaster>--- (Aleksandr Parfenov)</webMaster><lastBuildDate>Tue, 20 Feb 2018 11:45:26 +0300</lastBuildDate><atom:link href="https://asp437.github.io/en/index.xml" rel="self" type="application/rss+xml"/><item><title>PostgreSQL Flexible Full Text Search</title><link>https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/</link><pubDate>Tue, 20 Feb 2018 11:45:26 +0300</pubDate><author>--- (Aleksandr Parfenov)</author><guid>https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/</guid><description>asp437 Blog https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/ -&lt;p&gt;&lt;strong&gt;PostgreSQL&lt;/strong&gt; is a powerful RDBMS which can store data as well as do some manipulations on it such as search or calculating some analytical information and one the techniques is &lt;em&gt;FTS&lt;/em&gt;.
+The Full Text Search (or &lt;em&gt;FTS&lt;/em&gt; for short) was introduced in &lt;strong&gt;PostgreSQL&lt;/strong&gt; firstly as a tsearch extension and added into &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 as a core feature.
+Unfortunately, since &lt;strong&gt;PostgreSQL&lt;/strong&gt; 8.3 &lt;em&gt;FTS&lt;/em&gt; almost didn’t change and have some issues which were detected during years of the work with it.
+I’m working on a patch to extend the abilities and flexibility of &lt;em&gt;FTS&lt;/em&gt; configuration mechanism in &lt;strong&gt;PostgreSQL&lt;/strong&gt; and want to describe it in more details in this post.&lt;/p&gt;
+&lt;h2 id="basics-of-full-text-search"&gt;Basics of Full Text Search&lt;/h2&gt;
+&lt;p&gt;First of all, let’s take a look at theory of &lt;em&gt;FTS&lt;/em&gt; and its concepts.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;FTS&lt;/em&gt; is a set of techniques to process text written in a natural language in order to do a search over documents with respect to language structure and rules.
+The most important parts of text processing are dividing the text into words (tokens) and normalize them.
+Most of the languages have some ways to generate one word from another by adding prefixes and suffixes to change the part of speech or slightly change the meaning or meet some grammar rule.
+However, the word didn’t change the root and still have the similar meaning.
+The example of the normalization is transforming word &lt;code&gt;jumps&lt;/code&gt; to &lt;code&gt;jump&lt;/code&gt; or change &lt;code&gt;processed&lt;/code&gt; to &lt;code&gt;process&lt;/code&gt;.
+The normalization allows us to search for any form of one word.&lt;/p&gt;
+&lt;p&gt;One more concept of the &lt;em&gt;FTS&lt;/em&gt; which is worth mention is stopwords.
+Stopword is a word which is too common in a language and can be found in most of the documents.
+A good example of stopwords are articles, conjunctions, and particles.
+Common way to work with stopwords is to ignore them because a query with stopword probably will return all documents.&lt;/p&gt;
+&lt;h2 id="current-way-to-configure-fts-in-postgresql"&gt;Current Way to Configure FTS in PostgreSQL&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;FTS&lt;/em&gt; model in &lt;strong&gt;PostgreSQL&lt;/strong&gt; is shown in the following schema.&lt;/p&gt;
+&lt;figure align="Center" role="group" aria-describedby="caption-d41d8cd98f00b204e9800998ecf8427e"&gt;
+&lt;a href="https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/fts-concept.png" class="img-link"&gt;
+&lt;img src="https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/fts-concept_hu_3f2d9e8d06213086.png"&gt;
+&lt;/a&gt;
+&lt;figcaption id="caption-d41d8cd98f00b204e9800998ecf8427e"&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;p&gt;The type &lt;code&gt;tsvector&lt;/code&gt; is a representation of the document ready for &lt;em&gt;FTS&lt;/em&gt; and &lt;code&gt;tsquery&lt;/code&gt; is a representation of the search query.
+Both types contain lexemes with some additional information such as positions or query operators.&lt;/p&gt;
+&lt;p&gt;Objects of both types are generated in a similar way, except parsing of query language during generation of &lt;code&gt;tsquery&lt;/code&gt;.
+The parser and dictionaries steps are same for both.
+A parser is a software which divides a text into tokens and sends it to dictionaries, while dictionaries process each token to generate lexemes which will be used after the processing.&lt;/p&gt;
+&lt;p&gt;An &lt;em&gt;FTS&lt;/em&gt; configuration describes which parser and dictionaries use to process a text.
+Parser defines a list of possible token types.
+Each token type has it’s own dictionaries configuration Dictionaries are written in a chain and called one by one from left to right.
+The first non-NULL output will be used as an output of the whole chain (except &lt;code&gt;TSL_FILTER&lt;/code&gt; case).&lt;/p&gt;
+&lt;figure align="Center" role="group" aria-describedby="caption-d41d8cd98f00b204e9800998ecf8427e"&gt;
+&lt;a href="https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/fts-processing.png" class="img-link"&gt;
+&lt;img src="https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/fts-processing_hu_1a03f785cbdccf4b.png"&gt;
+&lt;/a&gt;
+&lt;figcaption id="caption-d41d8cd98f00b204e9800998ecf8427e"&gt;
+&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;h2 id="full-text-search-problems"&gt;Full Text Search Problems&lt;/h2&gt;
+&lt;h3 id="multilingual-search"&gt;Multilingual Search&lt;/h3&gt;
+&lt;p&gt;One of the most common problems with &lt;em&gt;FTS&lt;/em&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt; is the inability to process set of documents in different languages or a document which contains text in more than one language.
+The current way to solve the problem is to do a search in both languages separately and combine results.
+But this approach has few drawback such as storing redundant data in indices and complexity of ranking of the results.
+&lt;a href="https://www.postgresql.org/message-id/flat/034a1475-4e88-227b-8f96-2bc64ce6998e%40gmail.com#034a1475-4e88-227b-8f96-2bc64ce6998e@gmail.com"&gt;Here&lt;/a&gt; is one of the threads in pgsql mailing list with the discussion of the problem.&lt;/p&gt;
+&lt;h3 id="morphological-and-exact-search"&gt;Morphological and Exact Search&lt;/h3&gt;
+&lt;p&gt;Another common problem is a combination of morphological and exact search in one query.
+The morphological search is a search with respect to words structure and grammar rules as it was described in &amp;ldquo;&lt;strong&gt;Basics of Full Text Search&lt;/strong&gt;&amp;rdquo;.
+On the other hand, in exact search, we shouldn’t change the form of the word.
+It may be useful to do a query with a special term of a name inside.&lt;/p&gt;
+&lt;p&gt;Currently, it can be managed only by a combination of few &lt;code&gt;tsquery&lt;/code&gt;/&lt;code&gt;tsvector&lt;/code&gt; pairs and it’s hard to provide a user-friendly interface to it.&lt;/p&gt;
+&lt;h3 id="special-stopwords-procesing"&gt;Special Stopwords Procesing&lt;/h3&gt;
+&lt;p&gt;Current &lt;em&gt;FTS&lt;/em&gt; infrastructure doesn’t provide a way to configure stopwords processing.
+The stopwords processing should be implemented in each dictionary and we can’t use a special dictionary to work with stopwords or disable their processing in a dictionary (unless dictionary author adds such a parameter to it).
+Also, it makes dictionaries too complicated since each of them contains two functions and stopword filtering function is repeated in each dictionary.&lt;/p&gt;
+&lt;h2 id="flexible-way-to-configure-fts-in-postgresql"&gt;Flexible Way to Configure FTS in PostgreSQL&lt;/h2&gt;
+&lt;p&gt;The new approach to configure &lt;em&gt;FTS&lt;/em&gt; based on an idea to add an ability to select how token should be processed according to an output of some dictionary expression and its mainly based on &lt;code&gt;CASE/WHEN/THEN/ELSE&lt;/code&gt; syntax with some simplifications.
+According to the patch, an &lt;em&gt;FTS&lt;/em&gt; configuration (&lt;code&gt;config&lt;/code&gt;) is one of the following formats:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;dictionary_name&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;config { UNION | INTERSECT | EXCEPT | MAP } config&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CASE config WHEN [ NO ] MATCH THEN { KEEP | config } [ ELSE config ] END&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;UNION&lt;/code&gt;, &lt;code&gt;INTERSECT&lt;/code&gt;, and &lt;code&gt;EXCEPT&lt;/code&gt; are same as for any other sets.
+Special operator &lt;code&gt;MAP&lt;/code&gt; used to configure the behavior of filtering dictionary with any dictionary.
+It passes output of the left hand expression to the right one.
+If the left hand expression doesn’t return anything an original token used as input for right hand expression.
+Visit updated documentation to get a more detailed description of the new syntax:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Currently links are broken.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://asp437.github.io/res/pg-fts-doc/textsearch.html"&gt;Full Text Search&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://asp437.github.io/res/pg-fts-doc/sql-altertsconfig.html"&gt;ALTER TEXT SEARCH CONFIGURATION&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="use-cases"&gt;Use cases&lt;/h2&gt;
+&lt;h3 id="bilingual-search"&gt;Bilingual Search&lt;/h3&gt;
+&lt;p&gt;With new configurations of &lt;em&gt;FTS&lt;/em&gt; bilingual search can be described in one configuration which will combine a result of dictionaries for both languages.
+The following configuration combines English and German dictionaries:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;ALTER TEXT SEARCH CONFIGURATION multi_en_de
+ALTER MAPPING FOR asciiword, word WITH
+CASE english_hunspell WHEN MATCH THEN KEEP ELSE english_stem END
+UNION
+CASE german_hunspell WHEN MATCH THEN KEEP ELSE german_stem END;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With such configuration, we can search over a set of bilingual documents without language markers (or documents which contains both English and German).&lt;/p&gt;
+&lt;p&gt;In English:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;WITH docs(id, txt) as (values (1, &amp;#39;Das geschah zu Beginn dieses Monats&amp;#39;),
+(2, &amp;#39;with old stars and lacking gas and dust&amp;#39;),
+(3, &amp;#39;25 light-years across, blown bywinds from its central&amp;#39;))
+SELECT * FROM docs WHERE to_tsvector(&amp;#39;multi_en_de&amp;#39;, txt) @@ to_tsquery(&amp;#39;multi_en_de&amp;#39;, &amp;#39;lack&amp;#39;);
+id | txt
+----+-----------------------------------------
+2 | with old stars and lacking gas and dust
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And in German:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;WITH docs(id, txt) as (values (1, &amp;#39;Das geschah zu Beginn dieses Monats&amp;#39;),
+(2, &amp;#39;with old stars and lacking gas and dust&amp;#39;),
+(3, &amp;#39;25 light-years across, blown bywinds from its central&amp;#39;))
+SELECT * FROM docs WHERE to_tsvector(&amp;#39;multi_en_de&amp;#39;, txt) @@ to_tsquery(&amp;#39;multi_en_de&amp;#39;, &amp;#39;beginnen&amp;#39;);
+id | txt
+----+-------------------------------------
+1 | Das geschah zu Beginn dieses Monats
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="morphological-and-exact-search-1"&gt;Morphological and Exact Search&lt;/h3&gt;
+&lt;p&gt;A combination of stemmer dictionary with &lt;code&gt;simple&lt;/code&gt; may be used to mix search for an exact form of one word and linguistic search for others.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;ALTER TEXT SEARCH CONFIGURATION exact_and_linguistic
+ALTER MAPPING FOR asciiword, word WITH english_stem UNION simple;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And we can search for plural form of the word &lt;code&gt;star&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;WITH docs(id, txt) as (values (1, &amp;#39;Supernova star&amp;#39;),
+(2, &amp;#39;Supernova stars&amp;#39;))
+SELECT * FROM docs WHERE to_tsvector(&amp;#39;exact_and_linguistic&amp;#39;, txt) @@ (to_tsquery(&amp;#39;simple&amp;#39;, &amp;#39;stars&amp;#39;) &amp;amp;amp;&amp;amp;amp; to_tsquery(&amp;#39;english&amp;#39;, &amp;#39;supernovae&amp;#39;));
+id | txt
+----+-----------------
+2 | Supernova stars
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="special-stopwords-processing"&gt;Special Stopwords Processing&lt;/h3&gt;
+&lt;p&gt;With new configuration, it is possible to use a separate dictionary for a stopword detection and get rid of mixing two functions in one dictionary.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;ALTER TEXT SEARCH CONFIGURATION stopword_separate
+ALTER MAPPING FOR asciiword, word WITH CASE stopwords WHEN NO MATCH THEN stemmer END;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="filtering-dictionary"&gt;Filtering dictionary&lt;/h3&gt;
+&lt;p&gt;The filtering dictionaries are used to do a preprocessing of the word before the main dictionary processing.
+Currently, each filtering dictionary is designed to behave as a filter and there is no way to use it as a regular dictionary (unless you put it in the end of the chain) or use a regular dictionary as a filter.
+E.g. we can reimplement &lt;code&gt;thesaurus&lt;/code&gt; to take out the preprocessing of dictionaries from it to the configuration.&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;ALTER TEXT SEARCH CONFIGURATION multi_en_de
+ALTER MAPPING FOR asciiword, word WITH english_stem MAP thesaurus;
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="links"&gt;Links&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://commitfest.postgresql.org/17/1421/"&gt;Patch on Commitfest&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://www.postgresql.org/message-id/flat/20171019172409.731f52a7@asp437-24-g082ur#20171019172409.731f52a7@asp437-24-g082ur"&gt;Discussion in pgsql-hackers&lt;/a&gt; (Everyone is welcome to participate in the discussion or do a review)&lt;/p&gt;
+- https://asp437.github.io/en/blog/2018/postgresql_flexible_fts/ -</description></item><item><title>pg-elastic - Proxy to use PostgreSQL via ElasticSearch protocol</title><link>https://asp437.github.io/en/blog/2018/pg_elastic_intro/</link><pubDate>Mon, 15 Jan 2018 11:45:38 +0300</pubDate><author>--- (Aleksandr Parfenov)</author><guid>https://asp437.github.io/en/blog/2018/pg_elastic_intro/</guid><description>asp437 Blog https://asp437.github.io/en/blog/2018/pg_elastic_intro/ -&lt;p&gt;&lt;strong&gt;ElasticSearch&lt;/strong&gt; is one of the most popular solutions for Full-Text Search.
+&lt;strong&gt;ElasticSearch&lt;/strong&gt; is based on &lt;em&gt;Apache Lucene&lt;/em&gt;, powerful and flexible framework for text processing and provides additional components to it such as indices and easy-to-use REST API.
+On the other hand, &lt;strong&gt;PostgreSQL&lt;/strong&gt; also provides FTS features and widely used to store huge volume of data.
+The aim of this post is to describe a prototype of a proxy server which allows to use &lt;strong&gt;PostgreSQL&lt;/strong&gt; via &lt;strong&gt;ElasticSearch&lt;/strong&gt; protocol.
+The source code of the prototype is published on &lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="motivation"&gt;Motivation&lt;/h2&gt;
+&lt;p&gt;There is a number of different reasons to use such a server. Let’s look at some of them.&lt;/p&gt;
+&lt;p&gt;One of the most simple reasons is an intention to use as less of applications as possible since each application in infrastructure requires an effort to configuration and maintenance.
+In that case, we can remove one complex component of the infrastructure and replace it with a simple one.
+Also, it removes the problem of synchronization of two separate data-store components.&lt;/p&gt;
+&lt;p&gt;Another example is a migrating system to &lt;strong&gt;PostgreSQL&lt;/strong&gt; as main data storage.
+In that case, the pg-elastic can help to move from one platform to another faster, without rewriting the client application immediately.
+It is clear that this could better not to use as a permanent solution, but it can dramatically reduce the number of problems during migration.&lt;/p&gt;
+&lt;p&gt;And the third reason is a performance boost in some special cases which can be used in your application.
+&lt;strong&gt;PostgreSQL&lt;/strong&gt; has few index types that are aimed to use in FTS problems and some of them optimised for a narrow range of operation to perform very fast.&lt;/p&gt;
+&lt;h2 id="prototype-implementation"&gt;Prototype implementation&lt;/h2&gt;
+&lt;p&gt;The basic idea of the solution is to fully simulate &lt;strong&gt;ElasticSearch&lt;/strong&gt; REST API and proxy all requests to &lt;strong&gt;PostgreSQL&lt;/strong&gt; instance.
+The server is written in Go in order to process requests asynchronously in an easy way and get some other useful tools as well as fast execution speed and easy to deploy an application.&lt;/p&gt;
+&lt;p&gt;All documents and configurations stored in &lt;strong&gt;PostgreSQL&lt;/strong&gt; tables mainly in JSONB format that allows storing non-structured data in &lt;strong&gt;PostgreSQL&lt;/strong&gt;.
+The workflow of the request processing is shown in the following schema.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://asp437.github.io/en/blog/2018/pg_elastic_intro/pg-elastic-request-processing.png" alt="Request processing schema"&gt;&lt;/p&gt;
+&lt;p&gt;The current version of the pg-elastic is just prototype which supports only a few basic types of request and developed as proof-of-the-concept.
+More information about supported API can be found on &lt;a href="https://github.com/asp437/pg_elastic"&gt;GitHub project page&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="usage"&gt;Usage&lt;/h2&gt;
+&lt;h3 id="installation"&gt;Installation&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;pg_elastic&lt;/code&gt; written in Go programing language which is required to build the application.
+All dependencies could be automatically downloaded via go get command.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;IMPORTANT! pg_elastic requires Go compiler version 1.9 or above.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To download source code with all dependcies into &lt;code&gt;$GOPATH&lt;/code&gt; environment use:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go get github.com/asp437/pg_elastic
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;To build the application and place executable file in current directory use:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go build github.com/asp437/pg_elastic
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;To build and install the application in &lt;code&gt;$GOPATH/bin&lt;/code&gt; use:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go install github.com/asp437/pg_elastic
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Built executable file could be found at &lt;code&gt;$GOPATH/bin/pg_elastic&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To run dev-version of application inside its directory execute:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go run main.go
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="basic-actions"&gt;Basic actions&lt;/h3&gt;
+&lt;p&gt;The following example written in Python shows basic requests based on tests included with &lt;code&gt;pg_elastic&lt;/code&gt; and &lt;code&gt;elasticsearch_dsl&lt;/code&gt; library as easy to use &lt;strong&gt;ElasticSearch&lt;/strong&gt; driver&lt;/p&gt;
+&lt;p&gt;First of all, we should create a document type to store:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;class Tweet(DocType):
+message = Text(analyzer=&amp;#39;english&amp;#39;)
+user = Text()
+post_date = Date()
+class Meta:
+index = &amp;#39;twitter&amp;#39;
+doc_type = &amp;#39;tweet&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The next piece of code shows how to store documnts:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;message = &amp;#39;trying out Elasticsearch&amp;#39;
+user = &amp;#39;kimchy&amp;#39;
+tweet = Tweet(meta={&amp;#39;id&amp;#39;: 1}, message=message, user=user, post_date = datetime.now())
+tweet.save()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The following code searches over the collection of documents:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;s = Search(index=&amp;#34;twitter&amp;#34;) \
+.query(&amp;#34;match&amp;#34;, message=&amp;#34;try&amp;#34;)
+response = s.execute()
+s = Search(index=&amp;#34;twitter&amp;#34;) \
+.query(&amp;#34;match&amp;#34;, message=&amp;#34;trying&amp;#34;)
+response = s.execute()
+s = Search(index=&amp;#34;twitter&amp;#34;) \
+.query(&amp;#34;match&amp;#34;, message=&amp;#34;elastic&amp;#34;)
+response = s.execute()
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="migration"&gt;Migration&lt;/h3&gt;
+&lt;p&gt;To migrate data from existing &lt;strong&gt;ElasticSearch&lt;/strong&gt; cluster into &lt;strong&gt;PostgreSQL&lt;/strong&gt; instance for further usage with &lt;code&gt;pg_elastic&lt;/code&gt; use migration tool which is available in the &lt;code&gt;pg_elastic_migrate&lt;/code&gt; subpackage.
+It is automatically downloaded together with &lt;code&gt;pg_elastic&lt;/code&gt; itself.&lt;/p&gt;
+&lt;p&gt;To build the application and place executable file in current directory use:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go build github.com/asp437/pg_elastic/pg_elastic_migrate
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;To build and install it into &lt;code&gt;$GOPATH/bin&lt;/code&gt; use:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;go install github.com/asp437/pg_elastic/pg_elastic_migrate
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;To use the tool you should provide information about both &lt;strong&gt;ElasticSearch&lt;/strong&gt; source server and &lt;strong&gt;PostgreSQL&lt;/strong&gt; destanation instance.
+For example(all parameters are optional):&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;pg_elastic_migrate -elasticsearch-host=localhost:9200 -postgresql-host=localhost:5432 -postgresql-user=postgres -postgresql-password=postgres -postgresql-database=postgres
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Built executable file could be found at &lt;code&gt;$GOPATH/bin/pg_elastic_migrate&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Use &lt;code&gt;-h&lt;/code&gt; flag to get more information about tool’s parameters.&lt;/p&gt;
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;The development of the prototype showed that it is a quite challenging task to fully simulate the behavior of &lt;strong&gt;ElasticSearch&lt;/strong&gt; in &lt;strong&gt;PostgreSQL&lt;/strong&gt;.
+Nevertheless, it may worth in some cases, especially for systems with &lt;strong&gt;PostgreSQL&lt;/strong&gt; as the main data storage and &lt;strong&gt;ElasticSearch&lt;/strong&gt; as an FTS engine due to removing of the synchronization process.&lt;/p&gt;
+- https://asp437.github.io/en/blog/2018/pg_elastic_intro/ -</description></item></channel></rss>
